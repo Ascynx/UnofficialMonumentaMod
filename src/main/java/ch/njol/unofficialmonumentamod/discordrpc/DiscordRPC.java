@@ -1,13 +1,18 @@
 package ch.njol.unofficialmonumentamod.discordrpc;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import static ch.njol.unofficialmonumentamod.misc.Locations.getShard;
+
 import club.minnced.discord.rpc.*;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Hand;
 
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Objects;
+import java.util.Locale;
 
-import static ch.njol.unofficialmonumentamod.misc.Locations.getShard;
 
 public class DiscordRPC {
     club.minnced.discord.rpc.DiscordRPC lib = club.minnced.discord.rpc.DiscordRPC.INSTANCE;
@@ -33,9 +38,7 @@ public class DiscordRPC {
                 lib.Discord_RunCallbacks();
                 try {
                     Thread.sleep(2000);
-                } catch (InterruptedException ignored) {
-
-                }
+                } catch (InterruptedException ignored) {}
             }
         }, "RPC-Callback-Handler").start();
 
@@ -66,7 +69,7 @@ public class DiscordRPC {
         if (mc.world != null) {
             times++;
             boolean isSinglePlayer = mc.isInSingleplayer();
-            boolean isOnMonumenta = !isSinglePlayer && Objects.requireNonNull(mc.getCurrentServerEntry()).address.toLowerCase().matches("(?i)server.playmonumenta.com|monumenta-11.playmonumenta.com|monumenta-8.playmonumenta.com");
+            boolean isOnMonumenta = UnofficialMonumentaModClient.isOnMonumenta();
 
             DiscordRichPresence presence = new DiscordRichPresence();
             presence.startTimestamp = start_time;

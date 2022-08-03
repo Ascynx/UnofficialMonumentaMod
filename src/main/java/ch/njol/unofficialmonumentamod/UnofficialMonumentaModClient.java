@@ -1,6 +1,8 @@
 package ch.njol.unofficialmonumentamod;
 
 import ch.njol.unofficialmonumentamod.discordrpc.DiscordRPC;
+import ch.njol.unofficialmonumentamod.misc.Calculator;
+import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
 import ch.njol.unofficialmonumentamod.misc.Locations;
 import ch.njol.unofficialmonumentamod.misc.Notifier;
 import ch.njol.unofficialmonumentamod.options.Options;
@@ -19,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Objects;
 
 @net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
 public class UnofficialMonumentaModClient implements ClientModInitializer {
@@ -62,14 +65,23 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			abilityHandler.tick();
+			KeybindHandler.tick();
+			Calculator.tick();
 		});
 
 		ClientTickEvents.END_WORLD_TICK.register(world -> {
 			Notifier.tick();
 		});
 
+
+
 		ClientPlayNetworking.registerGlobalReceiver(ChannelHandler.CHANNEL_ID, new ChannelHandler());
 
+	}
+
+	public static boolean isOnMonumenta() {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		return !mc.isInSingleplayer() && Objects.requireNonNull(mc.getCurrentServerEntry()).address.toLowerCase().matches("(?i)server.playmonumenta.com|monumenta-11.playmonumenta.com|monumenta-8.playmonumenta.com|monumenta-13.playmonumenta.com");
 	}
 
 	public static void onDisconnect() {

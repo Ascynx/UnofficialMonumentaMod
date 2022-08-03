@@ -88,5 +88,22 @@
   "unofficial-monumenta-mod.config.option.notifyLocation": "Notifies in the form of an \"achievement\" like ui element when you change location.",
   "unofficial-monumenta-mod.config.option.notifyLocation.tooltip": "Disabling this will not disable the change of location in the discordRPC",
   "unofficial-monumenta-mod.config.option.notifierShowTime": "How long a notification will stay on the screen for.",
-  "unofficial-monumenta-mod.config.option.notifierShowTime.tooltip": ""
+  "unofficial-monumenta-mod.config.option.notifierShowTime.tooltip": "",
+  "unofficial-monumenta-mod.config.option.showCalculatorInPlots": "Adds a calculator in the container gui while in the plots shard",
+  "unofficial-monumenta-mod.config.option.showCalculatorInPlots.tooltip": "Example of containers: chests, ender chests, barrels and similar blocks",
+  "unofficial-monumenta-mod.config.category.quick_actions": "Quick Actions",
+  "unofficial-monumenta-mod.config.option.ShowQuickActionMenu": "Whether the quick action menu will be shown or not",
+  "unofficial-monumenta-mod.config.option.ShowQuickActionMenu.tooltip": "",
+  "unofficial-monumenta-mod.config.option.QuickActionMenuX": "Where on the X axis the quick action menu is located",
+  "unofficial-monumenta-mod.config.option.QuickActionMenuX.tooltip": "",
+  "unofficial-monumenta-mod.config.option.QuickActionMenuY": "Where on the Y axis is the quick action menu is located",
+  "unofficial-monumenta-mod.config.option.QuickActionMenuY.tooltip": "",
+  "unofficial-monumenta-mod.config.option.QuickAction": "The key is required to be pressed to open the quick action menu",
+  "unofficial-monumenta-mod.config.option.QuickAction.tooltip": "",
+  "unofficial-monumenta-mod.config.option.QuickSell": "The key required to be pressed to trigger the QuickSell quick action",
+  "unofficial-monumenta-mod.config.option.QuickSell.tooltip": "",
+  "unofficial-monumenta-mod.config.option.QuickSort": "The key required to be pressed to trigger the QuickSort quick action",
+  "unofficial-monumenta-mod.config.option.QuickSort.tooltip": "",
+  "unofficial-monumenta-mod.config.option.quickActionKeybinds": "Keybinds for the different Quick Actions:",
+  "unofficial-monumenta-mod.config.option.quickActionPositions" : "The position of the quick action menu:"
 }

@@ -1,6 +1,8 @@
 package ch.njol.unofficialmonumentamod.options;
 
 import ch.njol.unofficialmonumentamod.AbilityOptionPreset;
+import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
+import org.lwjgl.glfw.GLFW;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -63,6 +65,9 @@ public class Options {
 	@Category("misc")
 	@Slider(min = 1.5F, max = 60F, step = 0.1F, unit = "second")
 	public float notifierShowTime = 5F;
+
+	@Category("misc")
+	public boolean showCalculatorInPlots = true;
 
 	// TODO implement item cooldown display
 	// requires sever-side adaptions to send the cooldown (on use and on connect)
@@ -168,6 +173,27 @@ public class Options {
 	 * {location} returns the location or if not found the shard name
 	 * everything else is a string literal
 	 */
+
+	@Category("quick_actions")
+	public boolean ShowQuickActionMenu = true;
+
+	@Category("quick_actions")
+	public transient DescriptionLine quickActionPositions;
+
+	@Category("quick_actions")
+	public int QuickActionMenuX = -1;
+	@Category("quick_actions")
+	public int QuickActionMenuY = -1;
+
+	@Category("quick_actions")
+	public transient DescriptionLine quickActionKeybinds;
+
+	@Category("quick_actions")
+	public KeybindHandler.keybind QuickAction = new KeybindHandler.keybind(GLFW.GLFW_KEY_LEFT_SHIFT);
+	@Category("quick_actions")
+	public KeybindHandler.keybind QuickSell = new KeybindHandler.keybind(GLFW.GLFW_KEY_N);
+	@Category("quick_actions")
+	public KeybindHandler.keybind QuickSort = new KeybindHandler.keybind(GLFW.GLFW_KEY_B);
 
 	public void onUpdate() {
 		if (abilitiesDisplay_preset != AbilityOptionPreset.CUSTOM) {

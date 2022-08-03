@@ -17,6 +17,8 @@
     "ReloadableResourceManagerImplMixin"
   ],
   "client": [
+    "HandledScreenAccessor",
+    "ScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

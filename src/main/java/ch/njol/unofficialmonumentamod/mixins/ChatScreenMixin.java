@@ -44,32 +44,33 @@ public abstract class ChatScreenMixin extends Screen {
 		if (cir.getReturnValueZ()) {
 			return;
 		}
-		if (!UnofficialMonumentaModClient.options.abilitiesDisplay_enabled) {
+		if (!UnofficialMonumentaModClient.options.abilitiesDisplay_enabled && !UnofficialMonumentaModClient.options.ShowQuickActionMenu) {
 			return;
 		}
-		AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
-		synchronized (abilityHandler) {
-			List<AbilityHandler.AbilityInfo> abilityInfos = abilityHandler.abilityData;
-			if (abilityInfos.isEmpty()) {
-				return;
-			}
-			abilityInfos = abilityInfos.stream().filter(a -> UnofficialMonumentaModClient.isAbilityVisible(a, true)).collect(Collectors.toList());
 
-			int index = getClosestAbilityIndex(abilityInfos, mouseX, mouseY, true);
-			if (index < 0) {
-				return;
+			AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
+			synchronized (abilityHandler) {
+				List<AbilityHandler.AbilityInfo> abilityInfos = abilityHandler.abilityData;
+				if (abilityInfos.isEmpty()) {
+					return;
+				}
+				abilityInfos = abilityInfos.stream().filter(a -> UnofficialMonumentaModClient.isAbilityVisible(a, true)).collect(Collectors.toList());
+
+				int index = getClosestAbilityIndex(abilityInfos, mouseX, mouseY, true);
+				if (index < 0) {
+					return;
+				}
+				if (Screen.hasControlDown()) {
+					draggingWholeDisplay = true;
+					Point origin = getAbilitiesOrigin(abilityInfos);
+					dragX = mouseX - origin.x;
+					dragY = mouseY - origin.y;
+				} else {
+					draggedAbility = abilityInfos.get(index).getOrderId();
+					UnofficialMonumentaModClient.isReorderingAbilities = true;
+				}
+				cir.setReturnValue(true);
 			}
-			if (Screen.hasControlDown()) {
-				draggingWholeDisplay = true;
-				Point origin = getAbiltiesOrigin(abilityInfos);
-				dragX = mouseX - origin.x;
-				dragY = mouseY - origin.y;
-			} else {
-				draggedAbility = abilityInfos.get(index).getOrderId();
-				UnofficialMonumentaModClient.isReorderingAbilities = true;
-			}
-			cir.setReturnValue(true);
-		}
 	}
 
 	@Override
@@ -162,7 +163,7 @@ public abstract class ChatScreenMixin extends Screen {
 	}
 
 	@Unique
-	private Point getAbiltiesOrigin(List<AbilityHandler.AbilityInfo> abilityInfos) {
+	private Point getAbilitiesOrigin(List<AbilityHandler.AbilityInfo> abilityInfos) {
 		// code copied from InGameHudMixin
 		// TODO make utility method - also for other code around here...
 		Options options = UnofficialMonumentaModClient.options;
@@ -184,7 +185,7 @@ public abstract class ChatScreenMixin extends Screen {
 	@Unique
 	private int getClosestAbilityIndex(List<AbilityHandler.AbilityInfo> abilityInfos, double mouseX, double mouseY, boolean initialClick) {
 
-		Point origin = getAbiltiesOrigin(abilityInfos);
+		Point origin = getAbilitiesOrigin(abilityInfos);
 		int x = origin.x;
 		int y = origin.y;
 
