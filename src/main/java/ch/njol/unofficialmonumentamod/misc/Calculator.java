@@ -4,38 +4,75 @@ import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.mixins.HandledScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Calculator {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     public static final CalculatorRender renderer = new CalculatorRender();
-    private static int units;
-    private static int price;
+
+    private static ArrayList<Integer> values = new ArrayList<>();
 
     private static String output;
+    private static String mode = "normal"; //"normal" / "transfer" / "reverse-transfer"
 
     private static boolean hasShownError = false;
 
+    private static void switchMode() {
+        mode = Objects.equals(mode, "normal") ? "transfer" : Objects.equals(mode, "transfer") ? "reverse-transfer" : "normal";
+    }
+
     public synchronized static String logic() {
-        int HyperValue = (int) Math.floor((units * price) / 64);
-        int CompressedValue = (units * price) % 64;
+        int HyperValue = (int) Math.floor((values.get(1) * values.get(0)) / 64);
+        int CompressedValue = (values.get(1) * values.get(0)) % 64;
         if (!hasShownError && (HyperValue - 2147483647) > 0) {
             hasShownError = true;
             Notifier.addCustomToast(new NotificationToast(Text.of("Calculator"), Text.of("A value is higher than the 32bit integer limit, Expect glitches."), Notifier.getMillisHideTime()).setToastRender(NotificationToast.RenderType.SYSTEM));
         }
 
-        return "" + HyperValue + "H* " + CompressedValue + "C*";
+        return HyperValue + "H* " + CompressedValue + "C*";
+    }
+
+    public synchronized static String transferLogic() {
+        int rate1 = values.get(0);//in C*1
+        int rate2 = values.get(1);//in C*2
+        int toTransfer = values.get(2);
+
+        int HyperValue = (int) Math.floor(((rate1 - rate2) * toTransfer) /64);
+        int CompressedValue = ((rate1 - rate2) * toTransfer) % 64;
+        return HyperValue + "H* " + CompressedValue + "C*";
+    }
+
+    public synchronized static String reverseTransferLogic() {//stonks momento
+        //just gives what you need to get the amount
+        int wantedAmount = values.get(2);//in H*2
+        int rate1 = values.get(0);//in C*1
+        int rate2 = values.get(1);//in C*2
+
+        if (rate2 == 0) return "0H* 0C*";//prevents ArithmeticException
+
+        int CWantedAmount = wantedAmount * 64;
+
+        int HyperValue = (int) Math.floor((CWantedAmount / rate2) * rate1) / 64;
+        int CompressedValue = ((CWantedAmount / rate2) * rate1) % 64;
+
+        return HyperValue + "H* " + CompressedValue + "C*";
     }
 
     public static void tick() {
-        if (units == 0 && price == 0) return;
-        output = logic();
+        if (values.size() < 2) return;
+        if (Objects.equals(mode, "normal")) output = logic();
+        else if (Objects.equals(mode, "transfer") && values.size() >= 3) output = transferLogic();
+        else if (Objects.equals(mode, "reverse-transfer") && values.size() >= 3) output = reverseTransferLogic();
     }
 
     public static class CalculatorRender extends DrawableHelper {
@@ -44,8 +81,9 @@ public class Calculator {
 
         private final Identifier background = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/calc_background.png");
 
-        public TextFieldWidget price;
-        public TextFieldWidget units;
+        public ArrayList<TextFieldWidget> children = new ArrayList<>();
+
+        public ButtonWidget changeMode;
 
         CalculatorRender() {}
 
@@ -55,75 +93,119 @@ public class Calculator {
 
         private void resetPosition() {
             assert mc.currentScreen != null;
+            int oldX = this.x;
+            int oldY = this.y;
+
             this.x = ((HandledScreenAccessor)mc.currentScreen).getX() + ((HandledScreenAccessor)mc.currentScreen).getBackGroundWidth();
             this.y = ((HandledScreenAccessor)mc.currentScreen).getY();
 
-            if (this.price != null) {
-                this.price.x = this.x + 10;
-                this.price.y = this.y + 30;
+            if (changeMode != null) {
+                int XOffset = changeMode.x - oldX;
+                int YOffset = changeMode.y - oldY;
+
+                changeMode.x = this.x + XOffset;
+                changeMode.y = this.y + YOffset;
             }
-            if (this.units != null) {
-                this.units.x = this.x + 10;
-                this.units.y = this.y + 75;
+
+            for (TextFieldWidget widget: children) {
+                int XOffset = widget.x - oldX;
+                int YOffset = widget.y - oldY;
+
+                widget.x = this.x + XOffset;
+                widget.y = this.y + YOffset;
             }
+        }
+
+        private void initFieldWidget(int x, int y, String text, int slot) {
+            if (children == null) children = new ArrayList<>();
+            TextFieldWidget newWidget = new TextFieldWidget(mc.textRenderer, x, y, Math.max((int) Math.floor(mc.textRenderer.getWidth(text) / 1.5), 20), 10, Text.of(text));
+
+            newWidget.setEditableColor(16777215);
+
+            newWidget.setChangedListener((I) -> {
+                try {
+                    if (Calculator.values.size() < slot+1) {
+                        for (int i = 0; i < slot+1; i++) {
+                            try {
+                                if (Calculator.values.get(i) == null) Calculator.values.add(0);
+                            } catch (IndexOutOfBoundsException e) {
+                                Calculator.values.add(0);
+                            }
+                        }
+                    }
+
+                    Calculator.values.set(slot, Integer.parseInt(I));
+                } catch (Exception ignored) {
+                    Calculator.values.set(slot, 0);
+                }
+            });
+
+            this.children.add(newWidget);
+        }
+
+        private void initNormal() {
+            initFieldWidget(this.x+10, this.y + 30, "Enter price per unit (in C*)", 0);
+            initFieldWidget(this.x+10, this.y+75, "Enter number of units", 1);
+        }
+
+        private void initTransfer() {
+            initFieldWidget(this.x+10, this.y+30, "(C*1)", 0);
+            initFieldWidget(this.x+40, this.y+30, "(C*2)", 1);
+            initFieldWidget(this.x+10, this.y+75, "H*1", 2);
+        }
+
+        @SuppressWarnings("unchecked")//I know what I am doing, (actually I don't please send help)
+        protected <T extends Element> void addChild(T child) {
+            assert mc.currentScreen != null;
+
+            ((List<Element>) mc.currentScreen.children()).add(child);
         }
 
         public void init() {
             if (!shouldRender()) return;
             resetPosition();
 
-            this.price = new TextFieldWidget(mc.textRenderer, this.x+10, this.y+30, (int) Math.floor(mc.textRenderer.getWidth("Enter price per unit (in C*)") / 1.5), 10, Text.of("Enter price per unit (in C*)"));
-            this.units = new TextFieldWidget(mc.textRenderer, this.x+10, this.y+75, (int) Math.floor(mc.textRenderer.getWidth("Enter number of units") / 1.5), 10, Text.of("Enter number of units"));
+            if (this.changeMode == null) this.changeMode = new ButtonWidget(x, y, mc.textRenderer.getWidth("Change calculator mode"), 10, Text.of("Change calculator mode"), (buttonWidget) -> {
+                Calculator.switchMode();
+                assert mc.currentScreen != null;
+                for (TextFieldWidget widget: children) {
+                    mc.currentScreen.children().remove(widget);
+                }
+                Calculator.renderer.init();
 
-            price.setEditableColor(16777215);
-            units.setEditableColor(16777215);
-
-            units.setChangedListener((I) -> {
-                try {
-                    Calculator.units = Integer.parseInt(I);
-                } catch (Exception ignored) {
-                    Calculator.units = 0;
+                for (TextFieldWidget widget: children) {
+                    addChild(widget);
                 }
             });
 
-            price.setChangedListener((I) -> {
-                try {
-                    Calculator.price = Integer.parseInt(I);
-                } catch (Exception ignored) {
-                    Calculator.price = 0;
-                }
-            });
-
+            children.clear();
+            if (Objects.equals(mode, "normal")) initNormal();
+            else if (Objects.equals(mode, "transfer") || Objects.equals(mode, "reverse-transfer")) initTransfer();
         }
 
         public void onClose() {
-            if (units != null) {
-                units.setText("");
-            }
-            if (price != null) {
-                price.setText("");
-            }
-
+            children.clear();
             Calculator.hasShownError = false;
             Calculator.output = null;
         }
 
         public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-            if (!shouldRender() || price == null || units == null) return;
+            if (!shouldRender()) return;
             resetPosition();
 
             mc.getTextureManager().bindTexture(background);
             super.drawTexture(matrices, x, y, 0, 0, 256, 256);
 
-            mc.textRenderer.draw(matrices, "Enter price per unit (in C*)", x+10, y+15, 4210752);
-            price.render(matrices, mouseX, mouseY, delta);
+            if (changeMode != null) changeMode.render(matrices, mouseX, mouseY, delta);
 
-            mc.textRenderer.draw(matrices, "Enter number of units", x+10, y+60, 4210752);
-            units.render(matrices, mouseX, mouseY, delta);
+            for (TextFieldWidget widget: children) {
+                mc.textRenderer.draw(matrices, widget.getMessage(), widget.x, widget.y-15, 4210752);
+                widget.render(matrices, mouseX, mouseY, delta);
+            }
 
             if (output != null) {
-                mc.textRenderer.draw(matrices, output, x+10, y+105,  4210752);
-            } else mc.textRenderer.draw(matrices, "0H* 0C*", x+10, y+105,  4210752);
+                mc.textRenderer.draw(matrices, output, x + 10, y + 105, 4210752);
+            } else mc.textRenderer.draw(matrices, "0H* 0C*", x + 10, y + 105, 4210752);
         }
 
     }

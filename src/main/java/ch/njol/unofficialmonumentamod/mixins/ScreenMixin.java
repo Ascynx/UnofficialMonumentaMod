@@ -1,10 +1,10 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.misc.Calculator;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.ParentElement;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,8 +30,11 @@ public abstract class ScreenMixin implements ParentElement {
     private void onInit(CallbackInfo ci) {
         if (Calculator.renderer.shouldRender()) {
             Calculator.renderer.init();
-            this.addChild(Calculator.renderer.price);
-            this.addChild(Calculator.renderer.units);
+
+            this.addChild(Calculator.renderer.changeMode);
+            for (TextFieldWidget widget: Calculator.renderer.children) {
+                this.addChild(widget);
+            }
         }
     }
 }
