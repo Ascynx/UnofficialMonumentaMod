@@ -2,7 +2,7 @@ package ch.njol.unofficialmonumentamod;
 
 import ch.njol.unofficialmonumentamod.discordrpc.DiscordRPC;
 import ch.njol.unofficialmonumentamod.misc.Calculator;
-import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
+import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
 import ch.njol.unofficialmonumentamod.misc.Locations;
 import ch.njol.unofficialmonumentamod.misc.Notifier;
 import ch.njol.unofficialmonumentamod.options.Options;
@@ -65,7 +65,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			abilityHandler.tick();
-			KeybindHandler.tick();
+			KeybindingHandler.tick();
 			Calculator.tick();
 		});
 

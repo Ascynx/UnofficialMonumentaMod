@@ -6,7 +6,6 @@ import ch.njol.unofficialmonumentamod.options.Options;
 import com.google.common.collect.ImmutableList;
 
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
-import net.minecraft.network.MessageType;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import org.apache.commons.lang3.ArrayUtils;
@@ -25,10 +24,19 @@ import java.util.*;
 import static ch.njol.unofficialmonumentamod.Utils.isChestSortDisabledForInventory;
 
 public class QuickUse {
-    private static final KeybindHandler.keybind QuickActionHelp = new KeybindHandler.keybind(GLFW.GLFW_KEY_A);
     private static boolean RenderQuickActionMenu = false;
 
     private static final Options options = UnofficialMonumentaModClient.options;
+
+    private static boolean DraggingMenu = false;
+    /*
+     *  Idea for pos modification mode for quickAction menu
+     *  add an option in the settings to enter gui move mode, (will set renderQuickActionMenu to be always active when chat is on)
+     * (when on, you can then drag and drop the gui's position) -> while it is in drag and drop show a rectangle instead of the normal texture
+     */
+
+    public static final int width = 101;
+    public static final int height = 21;
 
 
     private static ArrayList<Integer> quickPotions = new ArrayList<>();
@@ -44,19 +52,13 @@ public class QuickUse {
         if (mc.currentScreen != null && !(mc.currentScreen instanceof GenericContainerScreen)) return;
         RenderQuickActionMenu = true;
 
-        if (!options.QuickAction.wasPressed()) {
-            findItems();
-        }
-        if (QuickActionHelp.wasPressed() && !QuickActionHelp.isPressed()) {
-            onQuickActionHelpReleased();
-            return;
-        }
+        findItems();
 
-        if (options.QuickSell.wasPressed() && !options.QuickSell.isPressed()) {
+        if (options.QuickSell.wasReleased()) {
             onQuickSellReleased();
             return;
         }
-        if (options.QuickSort.wasPressed() && !options.QuickSort.isPressed()) {
+        if (options.QuickSort.wasReleased()) {
             onQuickSortingReleased();
             return;
         }
@@ -64,10 +66,6 @@ public class QuickUse {
         IDEAS:
             quickPotions -> onQuickPotionPressed(); -> might be an issue due to cooldown.
             quickTesseract? -> would require a way to switch between found tesseracts (up key, down key);
-            quickSorting? (only in chests);
-
-
-            TODO make the menu be able to be changed positions from somewhere else than just settings.
          */
     }
 
@@ -75,17 +73,18 @@ public class QuickUse {
         RenderQuickActionMenu = false;
     }
     public static boolean isRendered() {
-        return RenderQuickActionMenu;
+        if (options.editGuiPosMode) {
+            return true;
+        } else return RenderQuickActionMenu;
     }
 
-    public static void onQuickActionHelpReleased() {
-        mc.inGameHud.addChatMessage(MessageType.SYSTEM, Text.of("QuickActions main key: " + options.QuickAction.getKeyName()), null);
-
-        mc.inGameHud.addChatMessage(MessageType.SYSTEM, Text.of("Release key " + options.QuickSell.getKeyName() + " to open crystallizer(item line) menu"), null);
-        mc.inGameHud.addChatMessage(MessageType.SYSTEM, Text.of("Release key " + options.QuickSort.getKeyName() + " to sort an inventory you're in."), null);
-
-        mc.inGameHud.addChatMessage(MessageType.SYSTEM, Text.of("Release main key before secondary one to cancel the QuickAction."), null);
+    public static boolean isDraggingMenu() {
+        return DraggingMenu;
     }
+    public static void setDraggingMenu(boolean bool) {
+        DraggingMenu = bool;
+    }
+
     public static void onQuickSellReleased() {
         if (quickSellSlot != null) {
             assert mc.player != null;
@@ -119,7 +118,7 @@ public class QuickUse {
         pickupContainerInventorySlot(actionSlot.id);
         pickupContainerInventorySlot(actionSlot.id);
     }
-    public static void onQuickPotionReleased() {
+    public synchronized static void onQuickPotionReleased() {
         if (quickPotions.size() > 0) {
             for (Integer quickPotionSlot: quickPotions) {
                 assert mc.player != null;
@@ -225,6 +224,10 @@ public class QuickUse {
         quickSellCandidates.sort(Comparator.comparingInt(i -> ArrayUtils.indexOf(quickSellItems, i.item.getName().asString())));
 
         if (quickSellCandidates.size() > 0) quickSellSlot = quickSellCandidates.get(0).slot;
+    }
+
+    public static boolean isMouseInBounds(double mouseX, double mouseY) {
+        return mouseX >= (double)options.QuickActionMenuX && mouseX < (double)(options.QuickActionMenuX + width) && mouseY >= (double)options.QuickActionMenuY && mouseY < (double)(options.QuickActionMenuY + height);
     }
 
     public static class ItemCandidate {

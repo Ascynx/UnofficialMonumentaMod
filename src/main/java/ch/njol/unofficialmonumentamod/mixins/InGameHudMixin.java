@@ -3,7 +3,7 @@ package ch.njol.unofficialmonumentamod.mixins;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
-import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
+import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
 import ch.njol.unofficialmonumentamod.misc.QuickUse;
 import ch.njol.unofficialmonumentamod.options.Options;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -11,16 +11,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -32,8 +27,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -89,6 +86,7 @@ public class InGameHudMixin extends DrawableHelper {
 
     @Unique
     private void renderQuickActionMenu(MatrixStack matrices, float tickDelta, boolean inFrontOfChat) {
+        //TODO add items as representation for every quick action rendered
         if (client.options.hudHidden || client.player == null || client.player.isSpectator() || !QuickUse.isRendered()) {
             return;
         }
@@ -97,34 +95,48 @@ public class InGameHudMixin extends DrawableHelper {
         if (!options.ShowQuickActionMenu) return;
 
         synchronized (options) {
-            ArrayList<Utils.TextWithOffset> textWithOffsets = new ArrayList<>();
-            for (int layer = 0; layer < 3; layer++) {
-                if (layer == 0) {
-                    this.client.getTextureManager().bindTexture(new Identifier("textures/gui/widgets.png"));
-                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                    super.drawTexture(matrices, options.QuickActionMenuX, options.QuickActionMenuY, 0, 0, 101, 21);
-                } else if (layer == 1) {
-                    int XOffset = 0;
-                    for (Field field : options.getClass().getDeclaredFields()) {
-                        if (!field.getType().equals(KeybindHandler.keybind.class) || field.getName().equals("QuickAction"))
-                            continue;
-                        try {
-                            if (((KeybindHandler.keybind) field.get(options)).isPressed()) {
-                                super.drawTexture(matrices, options.QuickActionMenuX + XOffset - 1, options.QuickActionMenuY - 1, 0, 22, 24, 21);
-                                textWithOffsets.add(new Utils.TextWithOffset(((KeybindHandler.keybind) field.get(options)).getKeyName(), XOffset + 18, 17));
-                            } else {
-                                textWithOffsets.add(new Utils.TextWithOffset(((KeybindHandler.keybind) field.get(options)).getKeyName(), XOffset + 18, 17));
+
+            if (!QuickUse.isDraggingMenu()) {
+                ArrayList<Utils.TextWithOffset> textWithOffsets = new ArrayList<>();
+                for (int layer = 0; layer < 3; layer++) {
+                    if (layer == 0) {
+                        this.client.getTextureManager().bindTexture(new Identifier("textures/gui/widgets.png"));
+                        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+                        super.drawTexture(matrices, options.QuickActionMenuX, options.QuickActionMenuY, 0, 0, QuickUse.width, QuickUse.height);
+                    } else if (layer == 1) {
+                        int XOffset = 0;
+                        for (Field field : options.getClass().getDeclaredFields()) {
+                            if (!field.getType().equals(KeybindingHandler.Keybinding.class) || field.getName().equals("QuickAction"))
+                                continue;
+                            try {
+                                //Quicksort icon -> ?
+                                //Quicksell icon -> experience ?
+                                //Quickpotion icon -> bottle
+                                this.client.getTextureManager().bindTexture(UNKNOWN_ABILITY_ICON);
+                                Utils.abilitiesDisplay.drawTextureSmooth(matrices, options.QuickActionMenuX + XOffset - 5, options.QuickActionMenuY - 5, options.abilitiesDisplay_iconSize, options.abilitiesDisplay_iconSize);
+
+                                this.client.getTextureManager().bindTexture(new Identifier("textures/gui/widgets.png"));
+                                if (((KeybindingHandler.Keybinding) field.get(options)).isPressed()) {
+                                    super.drawTexture(matrices, options.QuickActionMenuX + XOffset - 1, options.QuickActionMenuY - 1, 0, 22, 24, 21);
+                                    textWithOffsets.add(new Utils.TextWithOffset(((KeybindingHandler.Keybinding) field.get(options)).getKeyName(), XOffset + 18, 17));
+                                } else {
+                                    textWithOffsets.add(new Utils.TextWithOffset(((KeybindingHandler.Keybinding) field.get(options)).getKeyName(), XOffset + 18, 17));
+                                }
+                                XOffset += 20;
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            XOffset += 20;
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        }
+                    } else {
+                        for (Utils.TextWithOffset textWithOffset : textWithOffsets) {
+                            drawText(matrices, textWithOffset.getMessage(), options.QuickActionMenuX + textWithOffset.getXOffset(), options.QuickActionMenuY + textWithOffset.getYOffset(), 0xFFFFFF, inFrontOfChat);
                         }
                     }
-                } else {
-                    for (Utils.TextWithOffset textWithOffset : textWithOffsets) {
-                        drawText(matrices, textWithOffset.getMessage(), options.QuickActionMenuX + textWithOffset.getXOffset(), options.QuickActionMenuY + textWithOffset.getYOffset(), 0xFFFFFF, inFrontOfChat);
-                    }
                 }
+            } else {
+                this.client.getTextureManager().bindTexture(new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/dragmenu.png"));
+                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+                super.drawTexture(matrices, options.QuickActionMenuX, options.QuickActionMenuY, 0, 0, QuickUse.width, QuickUse.height);
             }
         }
     }
@@ -153,12 +165,6 @@ public class InGameHudMixin extends DrawableHelper {
             int iconSize = options.abilitiesDisplay_iconSize;
             int iconGap = options.abilitiesDisplay_iconGap;
 
-            boolean horizontal = options.abilitiesDisplay_horizontal;
-            float align = options.abilitiesDisplay_align;
-
-            int totalSize = iconSize * abilityInfos.size() + iconGap * (abilityInfos.size() - 1);
-
-            boolean ascendingRenderOrder = options.abilitiesDisplay_ascendingRenderOrder;
             int textColor = 0xFF000000 | options.abilitiesDisplay_textColorRaw;
 
             float silenceCooldownFraction = abilityHandler.initialSilenceDuration <= 0 || abilityHandler.silenceDuration <= 0 ? 0 : 1f * abilityHandler.silenceDuration / abilityHandler.initialSilenceDuration;
@@ -168,23 +174,12 @@ public class InGameHudMixin extends DrawableHelper {
             // layer 1: numbers
             for (int layer = 0; layer < 2; layer++) {
 
-                int x = Math.round(this.scaledWidth * options.abilitiesDisplay_offsetXRelative) + options.abilitiesDisplay_offsetXAbsolute;
-                int y = Math.round(this.scaledHeight * options.abilitiesDisplay_offsetYRelative) + options.abilitiesDisplay_offsetYAbsolute;
-                if (horizontal) {
-                    x -= align * totalSize;
-                } else {
-                    y -= align * totalSize;
-                }
-                if (!ascendingRenderOrder) {
-                    if (horizontal) {
-                        x += totalSize - iconSize;
-                    } else {
-                        y += totalSize - iconSize;
-                    }
-                }
+                Point point = Utils.abilitiesDisplay.getAbilitiesOrigin(abilityInfos, this.scaledWidth, this.scaledHeight, true);
+                int x = point.x;
+                int y = point.y;
 
                 for (int i = 0; i < abilityInfos.size(); i++) {
-                    AbilityHandler.AbilityInfo abilityInfo = abilityInfos.get(ascendingRenderOrder ? i : abilityInfos.size() - 1 - i);
+                    AbilityHandler.AbilityInfo abilityInfo = abilityInfos.get(Utils.abilitiesDisplay.isAscendingOrder() ? i : abilityInfos.size() - 1 - i);
 
                     if (UnofficialMonumentaModClient.isAbilityVisible(abilityInfo, false)) {
                         // some settings are affected by called methods, so set them anew for each ability to render
@@ -203,7 +198,7 @@ public class InGameHudMixin extends DrawableHelper {
                             float scaledY = y - (scaledIconSize - iconSize) / 2;
 
                             bindTextureOrDefault(getAbilityFileIdentifier(abilityInfo.className, abilityInfo.name, abilityInfo.mode), UNKNOWN_ABILITY_ICON);
-                            drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
+                            Utils.abilitiesDisplay.drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
 
                             // silenceCooldownFraction is >= 0 so this is also >= 0
                             float cooldownFraction = abilityInfo.initialCooldown <= 0 ? 0 : Math.min(Math.max((abilityInfo.remainingCooldown - tickDelta) / abilityInfo.initialCooldown, silenceCooldownFraction), 1);
@@ -212,19 +207,19 @@ public class InGameHudMixin extends DrawableHelper {
                                 final int numCooldownTextures = 16;
                                 int cooldownTextureIndex = (int) Math.floor((1 - cooldownFraction) * numCooldownTextures);
                                 this.client.getTextureManager().bindTexture(COOLDOWN_OVERLAY);
-                                drawTextureSmooth(matrices,
+                                Utils.abilitiesDisplay.drawTextureSmooth(matrices,
                                         scaledX, scaledY, scaledIconSize, scaledIconSize,
                                         0, 1, 1f * cooldownTextureIndex / numCooldownTextures, 1f * (cooldownTextureIndex + 1) / numCooldownTextures);
                             }
                             if (options.abilitiesDisplay_offCooldownFlashIntensity > 0 && animTicks < 8) {
                                 this.client.getTextureManager().bindTexture(COOLDOWN_FLASH);
                                 RenderSystem.color4f(1, 1, 1, options.abilitiesDisplay_offCooldownFlashIntensity * (1 - animTicks / 8f));
-                                drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
+                                Utils.abilitiesDisplay.drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
                                 RenderSystem.color4f(1, 1, 1, 1);
                             }
 
                             bindTextureOrDefault(getBorderFileIdentifier(abilityInfo.className, abilityHandler.silenceDuration > 0), UNKNOWN_CLASS_BORDER);
-                            drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
+                            Utils.abilitiesDisplay.drawTextureSmooth(matrices, scaledX, scaledY, scaledIconSize, scaledIconSize);
 
                         } else {
 
@@ -243,10 +238,10 @@ public class InGameHudMixin extends DrawableHelper {
                         }
                     }
 
-                    if (horizontal) {
-                        x += (ascendingRenderOrder ? 1 : -1) * (iconSize + iconGap);
+                    if (Utils.abilitiesDisplay.isHorizontal()) {
+                        x += (Utils.abilitiesDisplay.isAscendingOrder() ? 1 : -1) * (iconSize + iconGap);
                     } else {
-                        y += (ascendingRenderOrder ? 1 : -1) * (iconSize + iconGap);
+                        y += (Utils.abilitiesDisplay.isAscendingOrder() ? 1 : -1) * (iconSize + iconGap);
                     }
 
                 }
@@ -306,8 +301,9 @@ public class InGameHudMixin extends DrawableHelper {
 
     /**
      * If configured, do not show ability messages
-     * TODO the messages here are translated, so only work for English. Maybe just check for the ability name in the message? (assuming that one isn't translated as well...)
-     * TODO Or maybe make this an option server-side?
+     * TOD the messages here are translated, so only work for English. Maybe just check for the ability name in the message? (assuming that one isn't translated as well...)
+     * TOD Or maybe make this an option server-side?
+     * NOTE about the TODOS above: they're not translated.
      */
     @Inject(method = "setOverlayMessage(Lnet/minecraft/text/Text;Z)V", at = @At("HEAD"), cancellable = true)
     void setOverlayMessage(Text message, boolean tinted, CallbackInfo ci) {
@@ -337,29 +333,6 @@ public class InGameHudMixin extends DrawableHelper {
                 }
             }
         }
-    }
-
-    @Unique
-    private static void drawTextureSmooth(MatrixStack matrices, float x, float y, float width, float height) {
-        drawTexturedQuadSmooth(matrices.peek().getModel(), x, x + width, y, y + height, 0, 0, 1, 0, 1);
-    }
-
-    @Unique
-    private static void drawTextureSmooth(MatrixStack matrices, float x, float y, float width, float height, float u0, float u1, float v0, float v1) {
-        drawTexturedQuadSmooth(matrices.peek().getModel(), x, x + width, y, y + height, 0, u0, u1, v0, v1);
-    }
-
-    @Unique
-    private static void drawTexturedQuadSmooth(Matrix4f matrices, float x0, float x1, float y0, float y1, float z, float u0, float u1, float v0, float v1) {
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(7, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrices, x0, y1, z).texture(u0, v1).next();
-        bufferBuilder.vertex(matrices, x1, y1, z).texture(u1, v1).next();
-        bufferBuilder.vertex(matrices, x1, y0, z).texture(u1, v0).next();
-        bufferBuilder.vertex(matrices, x0, y0, z).texture(u0, v0).next();
-        bufferBuilder.end();
-        RenderSystem.enableAlphaTest();
-        BufferRenderer.draw(bufferBuilder);
     }
 
 }

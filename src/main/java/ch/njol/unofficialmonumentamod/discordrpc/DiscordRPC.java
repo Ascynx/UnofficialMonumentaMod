@@ -15,6 +15,7 @@ import java.util.Locale;
 
 
 public class DiscordRPC {
+    //TODO refactor to use less (or no) regexes.
     club.minnced.discord.rpc.DiscordRPC lib = club.minnced.discord.rpc.DiscordRPC.INSTANCE;
     String applicationId = "989262014562070619";
     String steamId = "";
@@ -99,14 +100,17 @@ public class DiscordRPC {
 
                     //replace each call
 
-                    if (detail.matches(".*?\\{.*?\\}.*?")) {
+                    if (detail.matches(".*?\\{.*?\\}.*?") && shortShard != null) {
                         detail = detail.replace("{player}", mc.player.getName().getString() != null ? mc.player.getName().getString() : "player");
-                        detail = detail.replace("{shard}", this.shard);
+                        detail = detail.replace("{shard}", this.shard != null ? this.shard : "Timed out");
                         detail = detail.replace("{server}", mc.getCurrentServerEntry().name);
                         detail = detail.replace("{holding}", !Objects.equals(mc.player.getStackInHand(Hand.MAIN_HAND).getName().getString(), "Air") ? mc.player.getStackInHand(Hand.MAIN_HAND).getName().getString() : "Nothing");
-                        detail = detail.replace("{class}", UnofficialMonumentaModClient.abilityHandler.abilityData.get(0).className.toLowerCase(Locale.ROOT));
+                        detail = detail.replace("{class}", UnofficialMonumentaModClient.abilityHandler.abilityData.size() > 0 ? UnofficialMonumentaModClient.abilityHandler.abilityData.get(0).className.toLowerCase(Locale.ROOT) : "Timed out");
                         detail = detail.replace("{location}", UnofficialMonumentaModClient.locations.getLocation(mc.player.getX(), mc.player.getZ(), shortShard));
-                    }//only runs those if there's at least one detected
+                    } else if (shortShard == null) {
+                        detail = "User timed out :) or I couldn't detect the user's shard";
+                    }
+                    //only runs those if there's at least one detected
                     presence.details = detail;
 
 

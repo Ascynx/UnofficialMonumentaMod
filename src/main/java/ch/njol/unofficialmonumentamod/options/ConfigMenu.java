@@ -1,7 +1,7 @@
 package ch.njol.unofficialmonumentamod.options;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
+import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -59,7 +59,7 @@ public class ConfigMenu implements ModMenuApi {
 					};
 					Consumer<Object> keycodeSaveConsumer = val -> {
 						try {
-							field.set(UnofficialMonumentaModClient.options, new KeybindHandler.keybind(((InputUtil.Key) val).getCode()));
+							field.set(UnofficialMonumentaModClient.options, new KeybindingHandler.Keybinding(((InputUtil.Key) val).getCode()));
 						} catch (IllegalAccessException e) {
 							e.printStackTrace();
 						}
@@ -134,9 +134,9 @@ public class ConfigMenu implements ModMenuApi {
 							.startTextDescription(new TranslatableText(translateKey))
 //                                .setTooltip(new TranslatableText(translateKey + ".tooltip"))
 							.build());
-					} else if (field.getType() == KeybindHandler.keybind.class) {
+					} else if (field.getType() == KeybindingHandler.Keybinding.class) {
 						category.addEntry(config.entryBuilder()
-								.startKeyCodeField(new TranslatableText(translateKey), InputUtil.fromKeyCode(((KeybindHandler.keybind) value).getKeycode(), -1))
+								.startKeyCodeField(new TranslatableText(translateKey), InputUtil.fromKeyCode(((KeybindingHandler.Keybinding) value).getKeycode(), -1))
 								.setTooltip(new TranslatableText(translateKey + ".tooltip"))
 								.setSaveConsumer(keycodeSaveConsumer::accept)
 								.build());

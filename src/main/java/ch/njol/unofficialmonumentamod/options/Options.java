@@ -1,7 +1,7 @@
 package ch.njol.unofficialmonumentamod.options;
 
 import ch.njol.unofficialmonumentamod.AbilityOptionPreset;
-import ch.njol.unofficialmonumentamod.misc.KeybindHandler;
+import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
 import org.lwjgl.glfw.GLFW;
 
 import java.lang.annotation.ElementType;
@@ -69,11 +69,11 @@ public class Options {
 	@Category("misc")
 	public boolean showCalculatorInPlots = true;
 
-	// TODO implement item cooldown display
+	// TOD implement item cooldown display
 	// requires sever-side adaptions to send the cooldown (on use and on connect)
-	// biggest issue: most tesseracts are apparently done in mcfunctions
-//	@Category("misc")
-//	public boolean renderItemCooldowns = true;
+	// the biggest issue: most tesseracts are apparently done in mcfunctions
+	@Category("misc")
+	public boolean renderItemCooldowns = true;
 
 	/*
 	 * Location related settings
@@ -181,6 +181,8 @@ public class Options {
 	public transient DescriptionLine quickActionPositions;
 
 	@Category("quick_actions")
+	public boolean editGuiPosMode = false;
+	@Category("quick_actions")
 	public int QuickActionMenuX = -1;
 	@Category("quick_actions")
 	public int QuickActionMenuY = -1;
@@ -189,11 +191,11 @@ public class Options {
 	public transient DescriptionLine quickActionKeybinds;
 
 	@Category("quick_actions")
-	public KeybindHandler.keybind QuickAction = new KeybindHandler.keybind(GLFW.GLFW_KEY_LEFT_SHIFT);
+	public KeybindingHandler.Keybinding QuickAction = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_LEFT_SHIFT);
 	@Category("quick_actions")
-	public KeybindHandler.keybind QuickSell = new KeybindHandler.keybind(GLFW.GLFW_KEY_N);
+	public KeybindingHandler.Keybinding QuickSell = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_N);
 	@Category("quick_actions")
-	public KeybindHandler.keybind QuickSort = new KeybindHandler.keybind(GLFW.GLFW_KEY_B);
+	public KeybindingHandler.Keybinding QuickSort = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_B);
 
 	public void onUpdate() {
 		if (abilitiesDisplay_preset != AbilityOptionPreset.CUSTOM) {

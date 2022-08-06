@@ -2,13 +2,17 @@ package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.Utils;
+import ch.njol.unofficialmonumentamod.misc.QuickUse;
 import ch.njol.unofficialmonumentamod.options.Options;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,16 +28,24 @@ import java.util.stream.Collectors;
 
 @Mixin(ChatScreen.class)
 public abstract class ChatScreenMixin extends Screen {
+	@Unique
+	private final MinecraftClient mc = MinecraftClient.getInstance();
 
 	@Unique
 	private String draggedAbility = null;
 
 	@Unique
-	private boolean draggingWholeDisplay = false;
+	private boolean draggingAbilityDisplay = false;
 	@Unique
 	private double dragX;
 	@Unique
 	private double dragY;
+
+	@Unique
+	private boolean draggingQuickActionMenu = false;
+	@Unique
+	private double QAMdragX;
+	@Unique double QAMdragY;
 
 	protected ChatScreenMixin(Text title) {
 		super(title);
@@ -44,10 +56,20 @@ public abstract class ChatScreenMixin extends Screen {
 		if (cir.getReturnValueZ()) {
 			return;
 		}
-		if (!UnofficialMonumentaModClient.options.abilitiesDisplay_enabled && !UnofficialMonumentaModClient.options.ShowQuickActionMenu) {
-			return;
-		}
 
+		if (UnofficialMonumentaModClient.options.editGuiPosMode) {
+			final Options options = UnofficialMonumentaModClient.options;
+			synchronized (options) {
+				if (QuickUse.isMouseInBounds(mouseX, mouseY) && button == 0) {
+					QAMdragX = mouseX - UnofficialMonumentaModClient.options.QuickActionMenuX;
+					QAMdragY = mouseY - UnofficialMonumentaModClient.options.QuickActionMenuY;
+					draggingQuickActionMenu = true;
+					QuickUse.setDraggingMenu(true);
+				}
+
+			}
+		}
+		if (UnofficialMonumentaModClient.options.abilitiesDisplay_enabled) {
 			AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
 			synchronized (abilityHandler) {
 				List<AbilityHandler.AbilityInfo> abilityInfos = abilityHandler.abilityData;
@@ -61,16 +83,18 @@ public abstract class ChatScreenMixin extends Screen {
 					return;
 				}
 				if (Screen.hasControlDown()) {
-					draggingWholeDisplay = true;
-					Point origin = getAbilitiesOrigin(abilityInfos);
+					draggingAbilityDisplay = true;
+					Point origin = Utils.abilitiesDisplay.getAbilitiesOrigin(abilityInfos, this.width, this.height);
 					dragX = mouseX - origin.x;
 					dragY = mouseY - origin.y;
 				} else {
 					draggedAbility = abilityInfos.get(index).getOrderId();
 					UnofficialMonumentaModClient.isReorderingAbilities = true;
 				}
-				cir.setReturnValue(true);
 			}
+		}
+
+		cir.setReturnValue(true);
 	}
 
 	@Override
@@ -105,7 +129,7 @@ public abstract class ChatScreenMixin extends Screen {
 				abilityHandler.sortAbilities();
 			}
 			return true;
-		} else if (draggingWholeDisplay) {
+		} else if (draggingAbilityDisplay) {
 			AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
 			synchronized (abilityHandler) {
 				List<AbilityHandler.AbilityInfo> abilityInfos = abilityHandler.abilityData;
@@ -146,46 +170,67 @@ public abstract class ChatScreenMixin extends Screen {
 				}
 			}
 			return true;
+		} else if (draggingQuickActionMenu) {
+			Options options = UnofficialMonumentaModClient.options;
+			synchronized (options) {
+				double newX = mouseX - QAMdragX;
+				double newY = mouseY - QAMdragY;
+
+				Point point = getClosestInBoundPosition(newX, newY, QuickUse.width, QuickUse.height);
+
+				options.QuickActionMenuX = point.x;
+				options.QuickActionMenuY = point.y;
+
+				//snap back to default
+				if (9 > options.QuickActionMenuX && 9 > options.QuickActionMenuY) {
+					options.QuickActionMenuY = -1;
+					options.QuickActionMenuX = -1;
+				}
+			}
+			return true;
 		}
 		return false;
 	}
 
+	@Unique
+	private Point getClosestInBoundPosition(double x, double y, int width, int height) {
+		Point point = new Point();
+
+		if (-1 > x) {
+			point.x = -1;
+		}  else if ((mc.getWindow().getWidth() / 2) <= x + width) {
+			point.x = (mc.getWindow().getWidth() / 2) - width;
+		} else point.x = (int) x;
+
+		if (-1 > y) {
+			point.y = -1;
+		} else if ((mc.getWindow().getHeight() / 2) <= y + height) {
+			point.y = (mc.getWindow().getHeight() / 2) - height;
+		} else point.y = (int) y;
+
+		return point;
+	}
+
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
-		if (draggedAbility != null || draggingWholeDisplay) {
+		if (draggedAbility != null || draggingAbilityDisplay) {
 			draggedAbility = null;
-			draggingWholeDisplay = false;
+			draggingAbilityDisplay = false;
 			UnofficialMonumentaModClient.isReorderingAbilities = false;
 			UnofficialMonumentaModClient.saveConfig();
 			return true;
+		} else if (draggingQuickActionMenu) {
+			draggingQuickActionMenu = false;
+			QuickUse.setDraggingMenu(false);
+			UnofficialMonumentaModClient.saveConfig();
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Unique
-	private Point getAbilitiesOrigin(List<AbilityHandler.AbilityInfo> abilityInfos) {
-		// code copied from InGameHudMixin
-		// TODO make utility method - also for other code around here...
-		Options options = UnofficialMonumentaModClient.options;
-		int iconSize = options.abilitiesDisplay_iconSize;
-		int iconGap = options.abilitiesDisplay_iconGap;
-		boolean horizontal = options.abilitiesDisplay_horizontal;
-		float align = options.abilitiesDisplay_align;
-		int totalSize = iconSize * abilityInfos.size() + iconGap * (abilityInfos.size() - 1);
-		int x = Math.round(this.width * options.abilitiesDisplay_offsetXRelative) + options.abilitiesDisplay_offsetXAbsolute;
-		int y = Math.round(this.height * options.abilitiesDisplay_offsetYRelative) + options.abilitiesDisplay_offsetYAbsolute;
-		if (horizontal) {
-			x -= align * totalSize;
-		} else {
-			y -= align * totalSize;
-		}
-		return new Point(x, y);
-	}
-
-	@Unique
 	private int getClosestAbilityIndex(List<AbilityHandler.AbilityInfo> abilityInfos, double mouseX, double mouseY, boolean initialClick) {
 
-		Point origin = getAbilitiesOrigin(abilityInfos);
+		Point origin = Utils.abilitiesDisplay.getAbilitiesOrigin(abilityInfos, this.width, this.height);
 		int x = origin.x;
 		int y = origin.y;
 
@@ -217,7 +262,7 @@ public abstract class ChatScreenMixin extends Screen {
 	@Inject(method = "removed()V", at = @At("HEAD"))
 	public void removed(CallbackInfo ci) {
 		draggedAbility = null;
-		draggingWholeDisplay = false;
+		draggingAbilityDisplay = false;
 		UnofficialMonumentaModClient.isReorderingAbilities = false;
 	}
 
@@ -227,7 +272,7 @@ public abstract class ChatScreenMixin extends Screen {
 		Style style = instance.getText(x, y);
 		if (!UnofficialMonumentaModClient.options.abilitiesDisplay_enabled
 			    || !UnofficialMonumentaModClient.options.abilitiesDisplay_tooltips
-			    || draggingWholeDisplay
+			    || draggingAbilityDisplay
 			    || draggedAbility != null
 			    || style != null && style.getHoverEvent() != null) {
 			return style;
@@ -247,7 +292,7 @@ public abstract class ChatScreenMixin extends Screen {
 
 			AbilityHandler.AbilityInfo abilityInfo = abilityInfos.get(index);
 			renderTooltip(matrices, Text.of(abilityInfo.name), mouseX, mouseY);
-			// TODO also display ability description
+			// TODO also display ability description NOTE: ability descriptions don't exist / aren't received rn
 		}
 		return style;
 	}

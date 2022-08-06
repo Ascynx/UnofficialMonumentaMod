@@ -105,5 +105,7 @@
   "unofficial-monumenta-mod.config.option.QuickSort": "The key required to be pressed to trigger the QuickSort quick action",
   "unofficial-monumenta-mod.config.option.QuickSort.tooltip": "",
   "unofficial-monumenta-mod.config.option.quickActionKeybinds": "Keybinds for the different Quick Actions:",
-  "unofficial-monumenta-mod.config.option.quickActionPositions" : "The position of the quick action menu:"
+  "unofficial-monumenta-mod.config.option.quickActionPositions" : "The position of the quick action menu:",
+  "unofficial-monumenta-mod.config.option.editGuiPosMode": "unlocks the ability to move the quick action gui",
+  "unofficial-monumenta-mod.config.option.editGuiPosMode.tooltip": "when it is on,\nyou can open the chat gui,\nthen you can drag and drop the quick action menu."
 }

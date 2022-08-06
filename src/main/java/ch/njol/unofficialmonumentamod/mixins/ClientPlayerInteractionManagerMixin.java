@@ -1,5 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
+import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.misc.CooldownManager;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -20,6 +22,11 @@ public abstract class ClientPlayerInteractionManagerMixin {
     @Inject(method = "clickSlot(IIILnet/minecraft/screen/slot/SlotActionType;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/item/ItemStack;",
             at = @At("HEAD"), cancellable = true)
     public void clickSlot_head(int syncId, int slotId, int clickData, SlotActionType actionType, PlayerEntity player, CallbackInfoReturnable<ItemStack> cir) {
+        if (CooldownManager.shouldRender() && (slotId < player.currentScreenHandler.slots.size()) && (slotId > 0) && CooldownManager.getCooldownFromItem(player.currentScreenHandler.getSlot(slotId).getStack()) != 0 && actionType == SlotActionType.PICKUP && clickData == 1) {
+            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
+        } else if (!CooldownManager.shouldRender()) {
+            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
+        }
         if (actionType == SlotActionType.PICKUP // single click
                 && clickData == 1 // right click
                 && player.inventory.getCursorStack().isEmpty()

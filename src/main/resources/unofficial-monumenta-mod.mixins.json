@@ -14,7 +14,8 @@
     "ItemRendererMixin",
     "MinecraftClientMixin",
     "PlayerListHudAccessor",
-    "ReloadableResourceManagerImplMixin"
+    "ReloadableResourceManagerImplMixin",
+    "ScreenHandlerMixin"
   ],
   "client": [
     "HandledScreenAccessor",

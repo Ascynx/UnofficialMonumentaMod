@@ -23,12 +23,12 @@ public class Calculator {
     private static ArrayList<Integer> values = new ArrayList<>();
 
     private static String output;
-    private static String mode = "normal"; //"normal" / "transfer" / "reverse-transfer"
+    private static String mode = "normal"; //"normal" / "exchange" / "reverse-exchange"
 
     private static boolean hasShownError = false;
 
     private static void switchMode() {
-        mode = Objects.equals(mode, "normal") ? "transfer" : Objects.equals(mode, "transfer") ? "reverse-transfer" : "normal";
+        mode = Objects.equals(mode, "normal") ? "exchange" : Objects.equals(mode, "exchange") ? "reverse-exchange" : "normal";
     }
 
     public synchronized static String logic() {
@@ -42,37 +42,40 @@ public class Calculator {
         return HyperValue + "H* " + CompressedValue + "C*";
     }
 
-    public synchronized static String transferLogic() {
+    public synchronized static String exchangeLogic() {
         int rate1 = values.get(0);//in C*1
         int rate2 = values.get(1);//in C*2
-        int toTransfer = values.get(2);
 
-        int HyperValue = (int) Math.floor(((rate1 - rate2) * toTransfer) /64);
-        int CompressedValue = ((rate1 - rate2) * toTransfer) % 64;
-        return HyperValue + "H* " + CompressedValue + "C*";
+        float exchange_rate = (float) rate1/rate2;
+        int toTransfer = values.get(2);//in H*1
+
+        float result = (toTransfer * 64) * exchange_rate;
+
+        return ((int) Math.floor(result / 64)) + "H* " + ((int) result % 64) + "C*";
     }
 
-    public synchronized static String reverseTransferLogic() {//stonks momento
-        //just gives what you need to get the amount
+    public synchronized static String reverseExchangeLogic() {//stonks momento
         int wantedAmount = values.get(2);//in H*2
+
         int rate1 = values.get(0);//in C*1
         int rate2 = values.get(1);//in C*2
 
         if (rate2 == 0) return "0H* 0C*";//prevents ArithmeticException
-
+        float exchange_rate = (float) rate1/rate2;
         int CWantedAmount = wantedAmount * 64;
 
-        int HyperValue = (int) Math.floor((CWantedAmount / rate2) * rate1) / 64;
-        int CompressedValue = ((CWantedAmount / rate2) * rate1) % 64;
-
-        return HyperValue + "H* " + CompressedValue + "C*";
+        return ((int) Math.floor((CWantedAmount * (1 / exchange_rate)) / 64)) + "H* " + ((int) (CWantedAmount * (1 / exchange_rate)) % 64) + "C*";
     }
 
     public static void tick() {
-        if (values.size() < 2) return;
+        if (values.size() < 2) {
+            output = "0H* 0C*";
+            return;
+        }
         if (Objects.equals(mode, "normal")) output = logic();
-        else if (Objects.equals(mode, "transfer") && values.size() >= 3) output = transferLogic();
-        else if (Objects.equals(mode, "reverse-transfer") && values.size() >= 3) output = reverseTransferLogic();
+        else if (Objects.equals(mode, "exchange") && values.size() >= 3) output = exchangeLogic();
+        else if (Objects.equals(mode, "reverse-exchange") && values.size() >= 3) output = reverseExchangeLogic();
+        else output ="0H* 0C*";
     }
 
     public static class CalculatorRender extends DrawableHelper {
@@ -88,7 +91,7 @@ public class Calculator {
         CalculatorRender() {}
 
         public boolean shouldRender() {
-            return UnofficialMonumentaModClient.options.showCalculatorInPlots && (!Objects.equals(Locations.getShortShard(), "plots") && (mc.currentScreen != null && mc.currentScreen.getClass().equals(GenericContainerScreen.class)));
+            return UnofficialMonumentaModClient.options.showCalculatorInPlots && (Objects.equals(Locations.getShortShard(), "plots") && (mc.currentScreen != null && mc.currentScreen.getClass().equals(GenericContainerScreen.class)));
         }
 
         private void resetPosition() {
@@ -148,7 +151,7 @@ public class Calculator {
             initFieldWidget(this.x+10, this.y+75, "Enter number of units", 1);
         }
 
-        private void initTransfer() {
+        private void initExchange() {
             initFieldWidget(this.x+10, this.y+30, "(C*1)", 0);
             initFieldWidget(this.x+40, this.y+30, "(C*2)", 1);
             initFieldWidget(this.x+10, this.y+75, "H*1", 2);
@@ -165,7 +168,7 @@ public class Calculator {
             if (!shouldRender()) return;
             resetPosition();
 
-            if (this.changeMode == null) this.changeMode = new ButtonWidget(x, y, mc.textRenderer.getWidth("Change calculator mode"), 10, Text.of("Change calculator mode"), (buttonWidget) -> {
+            if (this.changeMode == null) this.changeMode = new ButtonWidget(x, y, mc.textRenderer.getWidth(Calculator.mode) + 10, 10, Text.of(Calculator.mode), (buttonWidget) -> {
                 Calculator.switchMode();
                 assert mc.currentScreen != null;
                 for (TextFieldWidget widget: children) {
@@ -176,11 +179,18 @@ public class Calculator {
                 for (TextFieldWidget widget: children) {
                     addChild(widget);
                 }
+
+                for (int i = 0; i < Calculator.values.size(); i++) {
+                    if (Calculator.values.get(i) != 0) Calculator.values.set(i, 0);
+                }
+
+                buttonWidget.setMessage(Text.of(Calculator.mode));
+                buttonWidget.setWidth(mc.textRenderer.getWidth(Calculator.mode) + 10);
             });
 
             children.clear();
             if (Objects.equals(mode, "normal")) initNormal();
-            else if (Objects.equals(mode, "transfer") || Objects.equals(mode, "reverse-transfer")) initTransfer();
+            else if (Objects.equals(mode, "exchange") || Objects.equals(mode, "reverse-exchange")) initExchange();
         }
 
         public void onClose() {

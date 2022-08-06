@@ -5,14 +5,12 @@ import ch.njol.unofficialmonumentamod.options.Options;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.StringVisitable;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.text.Text;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 
-public class KeybindHandler {
+public class KeybindingHandler {
     private static ArrayList<Integer> oldTick = new ArrayList<>();
     private static final Options options = UnofficialMonumentaModClient.options;
 
@@ -23,17 +21,6 @@ public class KeybindHandler {
                 QuickUse.onMainQuickActionPress();
         } else if (wasPressed(options.QuickAction.getKeycode()) && !isPressed(options.QuickAction.getKeycode())) {
             QuickUse.onMainQuickActionReleased();
-        }
-
-        for (Field field: Options.class.getDeclaredFields()) {
-            if (!field.getType().equals(keybind.class)) continue;
-            try {
-                    if (((keybind) field.get(options)).isPressed()) {
-                        newTick.add(((keybind) field.get(options)).getKeycode());
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
         }
 
         for (int keycode: oldTick) {
@@ -48,13 +35,16 @@ public class KeybindHandler {
         return oldTick.contains(keycode);
     }
     private static boolean isPressed(int keycode) {
+        if (!oldTick.contains(keycode) && InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), keycode)) {
+            oldTick.add(keycode);
+        }
         return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), keycode);
     }
 
-    public static class keybind {
+    public static class Keybinding {
         private final int keycode;
 
-        public keybind(int keycode) {
+        public Keybinding(int keycode) {
             this.keycode = keycode;
         }
 
@@ -68,10 +58,14 @@ public class KeybindHandler {
             } else return text.getString();
         }
         public boolean isPressed() {
-            return KeybindHandler.isPressed(keycode);
+            return KeybindingHandler.isPressed(keycode);
         }
         public boolean wasPressed() {
-            return KeybindHandler.wasPressed(keycode);
+            return KeybindingHandler.wasPressed(keycode);
+        }
+
+        public boolean wasReleased() {
+            return !isPressed() && wasPressed();
         }
     }
 }
