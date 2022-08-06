@@ -3,8 +3,6 @@ package ch.njol.unofficialmonumentamod.mixins;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
-import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
-import ch.njol.unofficialmonumentamod.misc.QuickUse;
 import ch.njol.unofficialmonumentamod.options.Options;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -28,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.awt.*;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -64,7 +61,6 @@ public class InGameHudMixin extends DrawableHelper {
     void renderSkills_beforeStatusEffects(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
         if (!renderInFrontOfChat()) {
             renderAbilities(matrices, tickDelta, false);
-            renderQuickActionMenu(matrices, tickDelta, false);
         }
     }
 
@@ -74,7 +70,6 @@ public class InGameHudMixin extends DrawableHelper {
     void renderSkills_afterChat(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
         if (renderInFrontOfChat()) {
             renderAbilities(matrices, tickDelta, true);
-            renderQuickActionMenu(matrices, tickDelta, true);
         }
     }
 
@@ -82,63 +77,6 @@ public class InGameHudMixin extends DrawableHelper {
     private boolean renderInFrontOfChat() {
         return UnofficialMonumentaModClient.options.abilitiesDisplay_inFrontOfChat
                 && !(client.currentScreen instanceof ChatScreen);
-    }
-
-    @Unique
-    private void renderQuickActionMenu(MatrixStack matrices, float tickDelta, boolean inFrontOfChat) {
-        //TODO add items as representation for every quick action rendered
-        if (client.options.hudHidden || client.player == null || client.player.isSpectator() || !QuickUse.isRendered()) {
-            return;
-        }
-        Options options = UnofficialMonumentaModClient.options;
-
-        if (!options.ShowQuickActionMenu) return;
-
-        synchronized (options) {
-
-            if (!QuickUse.isDraggingMenu()) {
-                ArrayList<Utils.TextWithOffset> textWithOffsets = new ArrayList<>();
-                for (int layer = 0; layer < 3; layer++) {
-                    if (layer == 0) {
-                        this.client.getTextureManager().bindTexture(new Identifier("textures/gui/widgets.png"));
-                        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                        super.drawTexture(matrices, options.QuickActionMenuX, options.QuickActionMenuY, 0, 0, QuickUse.width, QuickUse.height);
-                    } else if (layer == 1) {
-                        int XOffset = 0;
-                        for (Field field : options.getClass().getDeclaredFields()) {
-                            if (!field.getType().equals(KeybindingHandler.Keybinding.class) || field.getName().equals("QuickAction"))
-                                continue;
-                            try {
-                                //Quicksort icon -> ?
-                                //Quicksell icon -> experience ?
-                                //Quickpotion icon -> bottle
-                                this.client.getTextureManager().bindTexture(UNKNOWN_ABILITY_ICON);
-                                Utils.abilitiesDisplay.drawTextureSmooth(matrices, options.QuickActionMenuX + XOffset - 5, options.QuickActionMenuY - 5, options.abilitiesDisplay_iconSize, options.abilitiesDisplay_iconSize);
-
-                                this.client.getTextureManager().bindTexture(new Identifier("textures/gui/widgets.png"));
-                                if (((KeybindingHandler.Keybinding) field.get(options)).isPressed()) {
-                                    super.drawTexture(matrices, options.QuickActionMenuX + XOffset - 1, options.QuickActionMenuY - 1, 0, 22, 24, 21);
-                                    textWithOffsets.add(new Utils.TextWithOffset(((KeybindingHandler.Keybinding) field.get(options)).getKeyName(), XOffset + 18, 17));
-                                } else {
-                                    textWithOffsets.add(new Utils.TextWithOffset(((KeybindingHandler.Keybinding) field.get(options)).getKeyName(), XOffset + 18, 17));
-                                }
-                                XOffset += 20;
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    } else {
-                        for (Utils.TextWithOffset textWithOffset : textWithOffsets) {
-                            drawText(matrices, textWithOffset.getMessage(), options.QuickActionMenuX + textWithOffset.getXOffset(), options.QuickActionMenuY + textWithOffset.getYOffset(), 0xFFFFFF, inFrontOfChat);
-                        }
-                    }
-                }
-            } else {
-                this.client.getTextureManager().bindTexture(new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/dragmenu.png"));
-                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                super.drawTexture(matrices, options.QuickActionMenuX, options.QuickActionMenuY, 0, 0, QuickUse.width, QuickUse.height);
-            }
-        }
     }
 
     @Unique

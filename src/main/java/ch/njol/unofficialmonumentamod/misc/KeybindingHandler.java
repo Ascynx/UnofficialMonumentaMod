@@ -17,12 +17,6 @@ public class KeybindingHandler {
     public static void tick() {
         ArrayList<Integer> newTick = new ArrayList<>();
 
-        if (isPressed(options.QuickAction.getKeycode())) {
-                QuickUse.onMainQuickActionPress();
-        } else if (wasPressed(options.QuickAction.getKeycode()) && !isPressed(options.QuickAction.getKeycode())) {
-            QuickUse.onMainQuickActionReleased();
-        }
-
         for (int keycode: oldTick) {
             if (isPressed(keycode) && !newTick.contains(keycode)) {
                 newTick.add(keycode);

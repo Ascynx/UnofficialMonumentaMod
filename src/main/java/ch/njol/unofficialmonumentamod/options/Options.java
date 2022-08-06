@@ -1,8 +1,6 @@
 package ch.njol.unofficialmonumentamod.options;
 
 import ch.njol.unofficialmonumentamod.AbilityOptionPreset;
-import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
-import org.lwjgl.glfw.GLFW;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -173,29 +171,6 @@ public class Options {
 	 * {location} returns the location or if not found the shard name
 	 * everything else is a string literal
 	 */
-
-	@Category("quick_actions")
-	public boolean ShowQuickActionMenu = true;
-
-	@Category("quick_actions")
-	public transient DescriptionLine quickActionPositions;
-
-	@Category("quick_actions")
-	public boolean editGuiPosMode = false;
-	@Category("quick_actions")
-	public int QuickActionMenuX = -1;
-	@Category("quick_actions")
-	public int QuickActionMenuY = -1;
-
-	@Category("quick_actions")
-	public transient DescriptionLine quickActionKeybinds;
-
-	@Category("quick_actions")
-	public KeybindingHandler.Keybinding QuickAction = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_LEFT_SHIFT);
-	@Category("quick_actions")
-	public KeybindingHandler.Keybinding QuickSell = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_N);
-	@Category("quick_actions")
-	public KeybindingHandler.Keybinding QuickSort = new KeybindingHandler.Keybinding(GLFW.GLFW_KEY_B);
 
 	public void onUpdate() {
 		if (abilitiesDisplay_preset != AbilityOptionPreset.CUSTOM) {

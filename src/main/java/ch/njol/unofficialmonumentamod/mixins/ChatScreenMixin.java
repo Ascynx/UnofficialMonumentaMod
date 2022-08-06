@@ -3,7 +3,6 @@ package ch.njol.unofficialmonumentamod.mixins;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
-import ch.njol.unofficialmonumentamod.misc.QuickUse;
 import ch.njol.unofficialmonumentamod.options.Options;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.ChatHud;
@@ -12,7 +11,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,12 +39,6 @@ public abstract class ChatScreenMixin extends Screen {
 	@Unique
 	private double dragY;
 
-	@Unique
-	private boolean draggingQuickActionMenu = false;
-	@Unique
-	private double QAMdragX;
-	@Unique double QAMdragY;
-
 	protected ChatScreenMixin(Text title) {
 		super(title);
 	}
@@ -55,19 +47,6 @@ public abstract class ChatScreenMixin extends Screen {
 	void mouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
 		if (cir.getReturnValueZ()) {
 			return;
-		}
-
-		if (UnofficialMonumentaModClient.options.editGuiPosMode) {
-			final Options options = UnofficialMonumentaModClient.options;
-			synchronized (options) {
-				if (QuickUse.isMouseInBounds(mouseX, mouseY) && button == 0) {
-					QAMdragX = mouseX - UnofficialMonumentaModClient.options.QuickActionMenuX;
-					QAMdragY = mouseY - UnofficialMonumentaModClient.options.QuickActionMenuY;
-					draggingQuickActionMenu = true;
-					QuickUse.setDraggingMenu(true);
-				}
-
-			}
 		}
 		if (UnofficialMonumentaModClient.options.abilitiesDisplay_enabled) {
 			AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
@@ -170,24 +149,6 @@ public abstract class ChatScreenMixin extends Screen {
 				}
 			}
 			return true;
-		} else if (draggingQuickActionMenu) {
-			Options options = UnofficialMonumentaModClient.options;
-			synchronized (options) {
-				double newX = mouseX - QAMdragX;
-				double newY = mouseY - QAMdragY;
-
-				Point point = getClosestInBoundPosition(newX, newY, QuickUse.width, QuickUse.height);
-
-				options.QuickActionMenuX = point.x;
-				options.QuickActionMenuY = point.y;
-
-				//snap back to default
-				if (9 > options.QuickActionMenuX && 9 > options.QuickActionMenuY) {
-					options.QuickActionMenuY = -1;
-					options.QuickActionMenuX = -1;
-				}
-			}
-			return true;
 		}
 		return false;
 	}
@@ -219,10 +180,6 @@ public abstract class ChatScreenMixin extends Screen {
 			UnofficialMonumentaModClient.isReorderingAbilities = false;
 			UnofficialMonumentaModClient.saveConfig();
 			return true;
-		} else if (draggingQuickActionMenu) {
-			draggingQuickActionMenu = false;
-			QuickUse.setDraggingMenu(false);
-			UnofficialMonumentaModClient.saveConfig();
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
 	}
