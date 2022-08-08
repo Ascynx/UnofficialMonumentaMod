@@ -1,6 +1,6 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
-import ch.njol.unofficialmonumentamod.misc.CooldownManager;
+import ch.njol.unofficialmonumentamod.misc.managers.CooldownManager;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;

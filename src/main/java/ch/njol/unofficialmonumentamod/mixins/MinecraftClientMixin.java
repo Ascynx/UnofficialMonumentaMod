@@ -1,8 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.misc.CooldownManager;
-import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
+import ch.njol.unofficialmonumentamod.misc.managers.CooldownManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;

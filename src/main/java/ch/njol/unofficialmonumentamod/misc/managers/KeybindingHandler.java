@@ -1,8 +1,8 @@
-package ch.njol.unofficialmonumentamod.misc;
+package ch.njol.unofficialmonumentamod.misc.managers;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.options.Options;
-
+import ch.njol.unofficialmonumentamod.misc.screen.ItemCustomizationGui;
+import ch.njol.unofficialmonumentamod.misc.screen.ItemCustomizationScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.TranslatableText;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public class KeybindingHandler {
     private static ArrayList<Integer> oldTick = new ArrayList<>();
-    private static final Options options = UnofficialMonumentaModClient.options;
 
     public static void tick() {
         ArrayList<Integer> newTick = new ArrayList<>();
@@ -60,6 +59,10 @@ public class KeybindingHandler {
 
         public boolean wasReleased() {
             return !isPressed() && wasPressed();
+        }
+
+        public boolean wasJustPressed() {
+            return isPressed() && !wasPressed();
         }
     }
 }

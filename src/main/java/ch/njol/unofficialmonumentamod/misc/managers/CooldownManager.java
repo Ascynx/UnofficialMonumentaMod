@@ -1,4 +1,4 @@
-package ch.njol.unofficialmonumentamod.misc;
+package ch.njol.unofficialmonumentamod.misc.managers;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import net.minecraft.client.MinecraftClient;
@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CooldownManager {//TODO detect whether it was actually triggered or not
+public class CooldownManager {
+    //TODO detect whether it was actually triggered or not
     private static final MinecraftClient mc = MinecraftClient.getInstance();
     private static final ItemCooldownManager manager = mc.player.getItemCooldownManager();
 

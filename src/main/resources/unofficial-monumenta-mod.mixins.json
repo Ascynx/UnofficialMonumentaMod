@@ -18,6 +18,7 @@
     "ScreenHandlerMixin"
   ],
   "client": [
+    "ItemStackMixin",
     "HandledScreenAccessor",
     "ScreenMixin"
   ],

@@ -1,7 +1,7 @@
 package ch.njol.unofficialmonumentamod.options;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.misc.KeybindingHandler;
+import ch.njol.unofficialmonumentamod.misc.managers.KeybindingHandler;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -74,7 +74,7 @@ public class ConfigMenu implements ModMenuApi {
 						continue;
 					}
 					ConfigCategory category = config.getOrCreateCategory(new TranslatableText("unofficial-monumenta-mod.config.category." + categoryAnnotation.value()));
-					// this code cannot be simplified because ClothConfig sucks -> it can be slightly simplified, but it still sucks.
+					// this code cannot be simplified because ClothConfig sucks -> it can be slightly simplified, but ClothConfig still sucks.
 					ConfigEntryBuilder builder = config.entryBuilder();
 					AbstractConfigListEntry entry;
 					if (field.getType() == Boolean.TYPE) {

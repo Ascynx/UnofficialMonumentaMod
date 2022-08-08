@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.misc.managers.ItemNameSpoofer;
 import net.minecraft.resource.ReloadableResourceManagerImpl;
 import net.minecraft.resource.ResourceReloadListener;
 import net.minecraft.resource.ResourceReloadMonitor;
@@ -20,5 +21,6 @@ public class ReloadableResourceManagerImplMixin {
     @Inject(at = @At("HEAD"), method = "beginReloadInner")
     private void reloadResources(Executor prepareExecutor, Executor applyExecutor, List<ResourceReloadListener> listeners, CompletableFuture<Unit> initialStage, CallbackInfoReturnable<ResourceReloadMonitor> cir) {
         UnofficialMonumentaModClient.locations.load();
+        ItemNameSpoofer.load();
     }
 }

@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.misc;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.misc.managers.Notifier;
 import ch.njol.unofficialmonumentamod.mixins.HandledScreenAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
@@ -152,9 +153,9 @@ public class Calculator {
         }
 
         private void initExchange() {
-            initFieldWidget(this.x+10, this.y+30, "(C*1)", 0);
-            initFieldWidget(this.x+40, this.y+30, "(C*2)", 1);
-            initFieldWidget(this.x+10, this.y+75, "H*1", 2);
+            initFieldWidget(this.x+10, this.y+30, "C*", 0);
+            initFieldWidget(this.x+40, this.y+30, "C*", 1);
+            initFieldWidget(this.x+10, this.y+75, "H*", 2);
         }
 
         @SuppressWarnings("unchecked")//I know what I am doing, (actually I don't please send help)

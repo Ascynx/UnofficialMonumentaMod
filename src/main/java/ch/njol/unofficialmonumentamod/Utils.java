@@ -2,6 +2,7 @@ package ch.njol.unofficialmonumentamod;
 
 import ch.njol.unofficialmonumentamod.options.Options;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
 import net.minecraft.client.render.BufferBuilder;
@@ -17,6 +18,7 @@ import net.minecraft.util.math.Matrix4f;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.nio.file.Files;
 import java.util.List;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +29,15 @@ import java.net.URL;
 public abstract class Utils {
 
     private Utils() {
+    }
+
+    public static String readFile(String filePath) throws IOException {
+        StringBuilder builder = new StringBuilder();
+
+        List<String> list = Files.readAllLines(FabricLoader.getInstance().getConfigDir().resolve(filePath).toFile().toPath());
+
+        list.forEach(s -> builder.append(s).append("\n"));
+        return builder.toString();
     }
 
     /**

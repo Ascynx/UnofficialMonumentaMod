@@ -15,7 +15,6 @@ import java.util.Locale;
 
 
 public class DiscordRPC {
-    //TODO refactor to use less (or no) regexes.
     club.minnced.discord.rpc.DiscordRPC lib = club.minnced.discord.rpc.DiscordRPC.INSTANCE;
     String applicationId = "989262014562070619";
     String steamId = "";
