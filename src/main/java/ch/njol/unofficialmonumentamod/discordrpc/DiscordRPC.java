@@ -99,10 +99,9 @@ public class DiscordRPC {
 
                     //replace each call
 
-                    if (detail.matches(".*?\\{.*?\\}.*?") && shortShard != null) {
+                    if (detail.matches(".*?\\{.*?}.*?") && shortShard != null) {
                         detail = detail.replace("{player}", mc.player.getName().getString() != null ? mc.player.getName().getString() : "player");
                         detail = detail.replace("{shard}", this.shard != null ? this.shard : "Timed out");
-                        detail = detail.replace("{server}", mc.getCurrentServerEntry().name);
                         detail = detail.replace("{holding}", !Objects.equals(mc.player.getStackInHand(Hand.MAIN_HAND).getName().getString(), "Air") ? mc.player.getStackInHand(Hand.MAIN_HAND).getName().getString() : "Nothing");
                         detail = detail.replace("{class}", UnofficialMonumentaModClient.abilityHandler.abilityData.size() > 0 ? UnofficialMonumentaModClient.abilityHandler.abilityData.get(0).className.toLowerCase(Locale.ROOT) : "Timed out");
                         detail = detail.replace("{location}", UnofficialMonumentaModClient.locations.getLocation(mc.player.getX(), mc.player.getZ(), shortShard));

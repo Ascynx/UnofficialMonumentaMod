@@ -1,6 +1,9 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.misc.managers.CooldownManager;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.ItemModels;
 import net.minecraft.client.render.item.ItemRenderer;
@@ -16,9 +19,12 @@ import net.minecraft.item.Items;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
@@ -31,6 +37,9 @@ public class ItemRendererMixin {
     @Shadow
     @Final
     private ItemModels models;
+
+    @Unique
+    private static ItemStack contextStack;
 
     /**
      * Pretend that tridents are apples so that the trident-specific code is not executed
@@ -55,6 +64,19 @@ public class ItemRendererMixin {
                 && stack.getItem() == Items.TRIDENT)
             return models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
         return model;
+    }
+
+    @Inject(method = "renderGuiItemOverlay(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V", at = @At("HEAD"))
+    private void getContextForRenderGuiItemOverlay(TextRenderer renderer, ItemStack stack, int x, int y, String countLabel, CallbackInfo ci) {
+        contextStack = stack;
+    }
+
+    @SuppressWarnings("InvalidInjectorMethodSignature")//I have no idea why it's screaming saying it doesn't exist, works for me though.
+    @ModifyVariable(method = "renderGuiItemOverlay(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;IILjava/lang/String;)V", at = @At(value = "STORE", ordinal = 0), index = 8)
+    private float setK(float value) {
+        if (CooldownManager.getCooldownProgress(contextStack.getItem(), MinecraftClient.getInstance().getTickDelta()) > 0.0F) {
+            return CooldownManager.getCooldownProgress(contextStack.getItem(), MinecraftClient.getInstance().getTickDelta());
+        } else return value;
     }
 
     /**
