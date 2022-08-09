@@ -23,9 +23,9 @@ public abstract class ClientPlayerInteractionManagerMixin {
             at = @At("HEAD"), cancellable = true)
     public void clickSlot_head(int syncId, int slotId, int clickData, SlotActionType actionType, PlayerEntity player, CallbackInfoReturnable<ItemStack> cir) {
         if (CooldownManager.shouldRender() && (slotId < player.currentScreenHandler.slots.size()) && (slotId > 0) && CooldownManager.getCooldownFromItem(player.currentScreenHandler.getSlot(slotId).getStack()) != null && actionType == SlotActionType.PICKUP && clickData == 1) {
-            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
+            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack(), CooldownManager.Trigger.INVENTORY);
         } else if (!CooldownManager.shouldRender()) {
-            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
+            CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack(), CooldownManager.Trigger.INVENTORY);
         }
         if (actionType == SlotActionType.PICKUP // single click
                 && clickData == 1 // right click

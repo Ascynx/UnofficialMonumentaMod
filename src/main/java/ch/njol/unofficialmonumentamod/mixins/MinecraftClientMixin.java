@@ -34,9 +34,9 @@ public abstract class MinecraftClientMixin {
             return;
         }
         if (CooldownManager.shouldRender() && CooldownManager.getCooldownFromItem(player.getMainHandStack()) != null) {
-            CooldownManager.addCooldownToItem(player.getMainHandStack());
+            CooldownManager.addCooldownToItem(player.getMainHandStack(), CooldownManager.Trigger.MAIN_HAND);
         } else if (!CooldownManager.shouldRender()) {
-            CooldownManager.addCooldownToItem(player.getMainHandStack());
+            CooldownManager.addCooldownToItem(player.getMainHandStack(), CooldownManager.Trigger.MAIN_HAND);
         }
         if (!UnofficialMonumentaModClient.options.crossbowFix) return;
         if (player.getMainHandStack() != null && player.getMainHandStack().getItem() == Items.CROSSBOW

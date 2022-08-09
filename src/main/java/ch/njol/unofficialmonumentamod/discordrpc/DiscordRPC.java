@@ -28,7 +28,7 @@ public class DiscordRPC {
     Timer t = new Timer();
 
     public void Init() {
-        handlers.ready = (user) -> System.out.println("Loaded Discord RPC!");
+        handlers.ready = (user) -> UnofficialMonumentaModClient.LOGGER.info("Loaded Discord RPC!");
         lib.Discord_Initialize(applicationId, handlers, true, steamId);
 
         startPresence();
