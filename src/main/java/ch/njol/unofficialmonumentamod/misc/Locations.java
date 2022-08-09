@@ -151,7 +151,10 @@ public class Locations {
 
             if (UnofficialMonumentaModClient.options.locationUpdate) {
                 JsonParser jsonParser = new JsonParser();
-                if (!Objects.equals(jsonParser.parse(getUrl(new URL(UPDATE_GIST_URL + "/commits"))).getAsJsonArray().get(0).getAsJsonObject().get("version").getAsString(), jsonParser.parse(cache).getAsJsonObject().get("update_commit").getAsString())) {
+                String remoteVersion = jsonParser.parse(getUrl(new URL(UPDATE_GIST_URL + "/commits"))).getAsJsonArray().get(0).getAsJsonObject().get("version").getAsString();
+                String localVersion = jsonParser.parse(cache).getAsJsonObject().get("update_commit").getAsString();
+                if (!Objects.equals(remoteVersion, localVersion)) {
+                    UnofficialMonumentaModClient.LOGGER.info(String.format("Found new update for location file %s -> %s", localVersion, remoteVersion));
                     update();
                     return;
                 }

@@ -19,6 +19,9 @@ import java.util.Objects;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
+    /**
+     * Renders spoofed name (and add the original name in tooltip)
+     */
     @Inject(method = "getTooltip", at = @At(value = "INVOKE_ASSIGN", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void onTooltip(@Nullable PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir, List<Text> list) {
         if (!Objects.equals(ItemNameSpoofer.getSpoofedName(((ItemStack)(Object)this)).getString(), ((ItemStack)(Object)this).getName().getString())) {

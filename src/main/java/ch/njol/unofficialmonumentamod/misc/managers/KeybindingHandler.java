@@ -1,8 +1,5 @@
 package ch.njol.unofficialmonumentamod.misc.managers;
 
-import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.misc.screen.ItemCustomizationGui;
-import ch.njol.unofficialmonumentamod.misc.screen.ItemCustomizationScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.TranslatableText;

@@ -107,7 +107,7 @@ public class NotificationToast implements Toast {
             } else {
                 manager.getGame().textRenderer.draw(matrices, this.title, center(manager.getGame().textRenderer.getWidth(this.title)), 7.0F, -11534256);
                 for(o = 0; o < this.lines.size(); ++o) {
-                    manager.getGame().textRenderer.draw(matrices, this.lines.get(o), center(manager.getGame().textRenderer.getWidth(this.lines.get(o))), (float)(18 + o * 12), -1);
+                    manager.getGame().textRenderer.draw(matrices, this.lines.get(o), center(manager.getGame().textRenderer.getWidth(this.lines.get(o))), (float)(18 + o * 12), 0x404040);
                 }
             }
 

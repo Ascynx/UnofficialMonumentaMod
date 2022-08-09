@@ -69,31 +69,6 @@ public abstract class Utils {
         return f * f * (3 - 2 * f);
     }
 
-    public static class TextWithOffset {
-        private final int XOffset;
-        private final int YOffset;
-        private final String message;
-
-        public TextWithOffset(String message,int X,int Y) {
-            this.message = message;
-            this.XOffset = X;
-            this.YOffset = Y;
-        }
-        public TextWithOffset(String message) {
-            this(message, 0, 0);
-        }
-
-        public int getXOffset() {
-            return XOffset;
-        }
-        public int getYOffset() {
-            return YOffset;
-        }
-        public String getMessage() {
-            return message;
-        }
-    }
-
     public static class abilitiesDisplay {
         private static final Options options = UnofficialMonumentaModClient.options;
         private static final int iconSize = options.abilitiesDisplay_iconSize;

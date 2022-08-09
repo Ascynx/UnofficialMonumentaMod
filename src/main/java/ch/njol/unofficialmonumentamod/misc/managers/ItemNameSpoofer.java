@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.UUID;
 
 import ch.njol.unofficialmonumentamod.Utils;
@@ -28,7 +27,9 @@ public class ItemNameSpoofer {
     private static ArrayList<Spoof> spoofedNames = new ArrayList<>();
     private static final String CACHE_PATH = "monumenta/spoofed-item-names.json";
 
-    //Will not change the actual item name -> will only change when the item name is called (tooltip and when the player switch to a slot that has that item)
+    /**
+     * A command that directly changes the current held item's spoofed name
+     */
     public static int commandNameSpoofer(CommandContext<FabricClientCommandSource> context) {
         final MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null) return 0;
@@ -65,12 +66,15 @@ public class ItemNameSpoofer {
 
         } catch (FileNotFoundException | NoSuchFileException e) {
             writeJsonFile(spoofedNames, CACHE_PATH);//create with "empty" values
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     *  either adds a new spoof (see Spoof class)
+     *  or edits an already existing one.
+     */
     public static void addSpoof(Spoof spoofed) {
         boolean exists = false;
         for (Spoof spoof: spoofedNames) {
@@ -83,6 +87,9 @@ public class ItemNameSpoofer {
         save();
     }
 
+    /**
+     * gets the locally stored spoofed name from the config (or returns the actual item's name if doesn't exist)
+     */
     public static MutableText getSpoofedName(ItemStack itemStack) {
         try {
             if (itemStack.getTag() == null) return new LiteralText("").append(itemStack.getName());
@@ -94,12 +101,13 @@ public class ItemNameSpoofer {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (NullPointerException ignored) {}
         return new LiteralText("").append(itemStack.getName());
     }
 
+    /**
+     *  checks if the item is spoofed and if it is then it removes it from local config.
+     */
     public static void remove(UUID uuid) {
         for (Spoof spoof: spoofedNames) {
             if (spoof.getUuid().equals(uuid)) {
@@ -107,33 +115,20 @@ public class ItemNameSpoofer {
                 break;
             }
         }
+        save();
     }
 
+    /**
+     *  Gets the uuid from an item, or returns null if it doesn't exist
+     */
     @Nullable
     public static UUID getUuid(ItemStack itemStack) {
-        if (itemStack.getTag().get("AttributeModifiers") != null && itemStack.getTag().getList("AttributeModifiers", 9) != null) {
-            UUID uuid = ((ListTag) itemStack.getTag().get("AttributeModifiers")).getCompound(0).getUuid("UUID");
-            return uuid;
-        }
+        try {
+            if (itemStack.getTag().get("AttributeModifiers") != null && itemStack.getTag().getList("AttributeModifiers", 9) != null) {
+                return ((ListTag) itemStack.getTag().get("AttributeModifiers")).getCompound(0).getUuid("UUID");
+            }
+        } catch (NullPointerException ignored) {}
         return null;
-    }
-
-    public static void EditOrDeleteExistingSpoof(UUID itemUuid, @Nullable Text text) {
-        if (text == null || Objects.equals(text.getString(), "")) {
-            for (Spoof spoofed: spoofedNames) {
-                if (spoofed.getUuid() == itemUuid) {
-                    spoofedNames.remove(spoofed);
-                    return;
-                }
-            }
-        } else {
-            for (Spoof spoofed: spoofedNames) {
-                if (spoofed.getUuid() == itemUuid) {
-                    spoofed.setName(text.getString());
-                    return;
-                }
-            }
-        }
     }
 
     public static class Spoof {
@@ -150,8 +145,7 @@ public class ItemNameSpoofer {
         }
 
         public MutableText getName() {
-            MutableText literal = new LiteralText(name);
-            return literal;
+            return new LiteralText(name);
         }
 
         public void setName(String name) {

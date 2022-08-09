@@ -2,6 +2,7 @@ package ch.njol.unofficialmonumentamod;
 
 import ch.njol.unofficialmonumentamod.discordrpc.DiscordRPC;
 import ch.njol.unofficialmonumentamod.misc.Calculator;
+import ch.njol.unofficialmonumentamod.misc.managers.CooldownManager;
 import ch.njol.unofficialmonumentamod.misc.managers.ItemNameSpoofer;
 import ch.njol.unofficialmonumentamod.misc.managers.KeybindingHandler;
 import ch.njol.unofficialmonumentamod.misc.Locations;
@@ -22,6 +23,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.util.Identifier;
 import net.minecraft.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -36,11 +39,13 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 	// TODO:
 	// sage's insight has no ClassAbility, but has stacks
 	// spellshock however has a ClassAbility, but doesn't really need to be displayed...
-	// build calculator with custom gui ?
+	// build calculator with a custom gui ?
 
 	public static final String MOD_IDENTIFIER = "unofficial-monumenta-mod";
 
 	public static final String OPTIONS_FILE_NAME = "unofficial-monumenta-mod.json";
+
+	public static final Logger LOGGER = LogManager.getLogger(MOD_IDENTIFIER);
 
 	public static Options options = new Options();
 
@@ -75,6 +80,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			abilityHandler.tick();
 			KeybindingHandler.tick();
 			Calculator.tick();
+			CooldownManager.update();
 		});
 
 		ClientTickEvents.END_WORLD_TICK.register(world -> {

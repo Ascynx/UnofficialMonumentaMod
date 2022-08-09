@@ -12,9 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ScreenHandler.class)
 public class ScreenHandlerMixin {
+    /**
+     *  Part of the detection used for item cooldowns.
+     */
     @Inject(at=@At("HEAD"), method="method_30010")
     private void onPlayerInventoryInteraction(int i, int j, SlotActionType slotActionType, PlayerEntity playerEntity, CallbackInfoReturnable<ItemStack> cir) {
-        if ((CooldownManager.shouldRender() && i < playerEntity.currentScreenHandler.slots.size()) && (i > 0) && CooldownManager.getCooldownFromItem(playerEntity.currentScreenHandler.getSlot(i).getStack()) != 0 && slotActionType == SlotActionType.PICKUP && j == 1) {
+        if ((CooldownManager.shouldRender() && i < playerEntity.currentScreenHandler.slots.size()) && (i > 0) && CooldownManager.getCooldownFromItem(playerEntity.currentScreenHandler.getSlot(i).getStack()) != null && slotActionType == SlotActionType.PICKUP && j == 1) {
             CooldownManager.addCooldownToItem(playerEntity.currentScreenHandler.getSlot(i).getStack());
         } else if (!CooldownManager.shouldRender()) {
             CooldownManager.addCooldownToItem(playerEntity.currentScreenHandler.getSlot(i).getStack());

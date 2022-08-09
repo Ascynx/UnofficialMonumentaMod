@@ -16,16 +16,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ScreenMixin implements ParentElement {
     @Shadow protected abstract <T extends Element> T addChild(T child);
 
+    /**
+     *  Used to render the calculator injection
+     */
     @Inject(at=@At("HEAD"), method = "render")
     private void onRender(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         Calculator.renderer.render(matrices, mouseX, mouseY, delta);
     }
 
+    /**
+     *  Used to remove the calculator injection
+     */
     @Inject(at=@At("HEAD"), method = "onClose")
     private void onClose(CallbackInfo ci) {
         Calculator.renderer.onClose();
     }
 
+    /**
+     *  Injects the calculator
+     */
     @Inject(at=@At("TAIL"), method = "init()V")
     private void onInit(CallbackInfo ci) {
         if (Calculator.renderer.shouldRender()) {

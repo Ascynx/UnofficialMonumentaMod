@@ -18,9 +18,14 @@ import java.util.concurrent.Executor;
 @Mixin(ReloadableResourceManagerImpl.class)
 public class ReloadableResourceManagerImplMixin {
 
+    /**
+     *  Loads the reloadable resources of the mod.
+     */
     @Inject(at = @At("HEAD"), method = "beginReloadInner")
     private void reloadResources(Executor prepareExecutor, Executor applyExecutor, List<ResourceReloadListener> listeners, CompletableFuture<Unit> initialStage, CallbackInfoReturnable<ResourceReloadMonitor> cir) {
+        UnofficialMonumentaModClient.LOGGER.info("Loading resources.");
         UnofficialMonumentaModClient.locations.load();
         ItemNameSpoofer.load();
+        UnofficialMonumentaModClient.LOGGER.info("Finished Loading resources");
     }
 }

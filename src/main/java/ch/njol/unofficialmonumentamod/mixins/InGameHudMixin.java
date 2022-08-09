@@ -79,11 +79,17 @@ public class InGameHudMixin extends DrawableHelper {
         }
     }
 
+    /**
+     *  Used for item name spoofing, required for the text to be centered
+     */
     @ModifyVariable(method = "renderHeldItemTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;hasCustomName()Z"), ordinal = 0)
-    private MutableText getSpoofedName(MutableText value) {//required for correct centering
+    private MutableText getSpoofedName(MutableText value) {
         return getSpoofed(value);
     }
 
+    /**
+     *  Used for item name spoofing, required to have the right text style.
+     */
     @ModifyVariable(method = "renderHeldItemTooltip", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/font/TextRenderer;getWidth(Lnet/minecraft/text/StringVisitable;)I"), ordinal = 0)
     private MutableText spoofedName(MutableText value) {//overrides the style changes.
         return getSpoofed(value);

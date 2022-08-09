@@ -33,7 +33,7 @@ public abstract class MinecraftClientMixin {
         if (player == null) {
             return;
         }
-        if (CooldownManager.shouldRender() && CooldownManager.getCooldownFromItem(player.getMainHandStack()) != 0) {
+        if (CooldownManager.shouldRender() && CooldownManager.getCooldownFromItem(player.getMainHandStack()) != null) {
             CooldownManager.addCooldownToItem(player.getMainHandStack());
         } else if (!CooldownManager.shouldRender()) {
             CooldownManager.addCooldownToItem(player.getMainHandStack());

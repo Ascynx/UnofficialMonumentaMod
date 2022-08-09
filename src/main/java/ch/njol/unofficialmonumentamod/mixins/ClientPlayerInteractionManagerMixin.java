@@ -17,11 +17,12 @@ public abstract class ClientPlayerInteractionManagerMixin {
 
     /**
      * Optionally disable the quicksort feature (sort inventory on double right click)
+     * And handles part of the detection used for the Item cooldowns.
      */
     @Inject(method = "clickSlot(IIILnet/minecraft/screen/slot/SlotActionType;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/item/ItemStack;",
             at = @At("HEAD"), cancellable = true)
     public void clickSlot_head(int syncId, int slotId, int clickData, SlotActionType actionType, PlayerEntity player, CallbackInfoReturnable<ItemStack> cir) {
-        if (CooldownManager.shouldRender() && (slotId < player.currentScreenHandler.slots.size()) && (slotId > 0) && CooldownManager.getCooldownFromItem(player.currentScreenHandler.getSlot(slotId).getStack()) != 0 && actionType == SlotActionType.PICKUP && clickData == 1) {
+        if (CooldownManager.shouldRender() && (slotId < player.currentScreenHandler.slots.size()) && (slotId > 0) && CooldownManager.getCooldownFromItem(player.currentScreenHandler.getSlot(slotId).getStack()) != null && actionType == SlotActionType.PICKUP && clickData == 1) {
             CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
         } else if (!CooldownManager.shouldRender()) {
             CooldownManager.addCooldownToItem(player.currentScreenHandler.getSlot(slotId).getStack());
