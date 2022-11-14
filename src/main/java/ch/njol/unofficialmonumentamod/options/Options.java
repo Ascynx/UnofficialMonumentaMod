@@ -49,6 +49,9 @@ public class Options implements ch.njol.minecraft.config.Options {
 
 	@Category("misc")
 	public boolean enableTextureSpoofing = true;
+	
+	@Category("misc")
+	public boolean highlightMaskedAssassins = true;
 
 	@Category("abilities")
 	public transient DescriptionLine abilitiesDisplay_info;
