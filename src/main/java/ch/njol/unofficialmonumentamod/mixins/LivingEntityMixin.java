@@ -22,7 +22,8 @@ public abstract class LivingEntityMixin extends Entity {
 	
 	@Inject(method = "isGlowing", at = @At("HEAD"), cancellable = true)
 	private void glowOverride(CallbackInfoReturnable<Boolean> cir) {
-		if (UnofficialMonumentaModClient.options.highlightMaskedAssassins && Objects.equals(Locations.getShortShard(), "ruin") && this.getDisplayName().getString().equalsIgnoreCase("masked assassin")) {
+		if (UnofficialMonumentaModClient.options.highlightMaskedAssassins &&
+				Objects.equals(Locations.getShortShard(), "ruin") && this.getDisplayName().getString().equalsIgnoreCase("masked assassin")) {
 			cir.setReturnValue(true);
 		}
 	}

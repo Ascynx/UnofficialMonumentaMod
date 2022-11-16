@@ -62,7 +62,7 @@ public class ShardData {
 
 		@Override
 		public String toString() {
-			return "{ \"officialName\": \"" + officialName + "\", \"shardType\": \"" + shardType.toString() + "\", \"maxChests\": " + maxChests + " }";
+			return "{ \"officialName\": \"" + officialName + "\", \"shardType\": \"" + shardType + "\", \"maxChests\": " + maxChests + " }";
 		}
 	}
 

@@ -15,6 +15,7 @@ import java.util.Objects;
 public class WorldRendererMixin {
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getTeamColorValue()I"))
 	private int getTeamColorValueRedirect(Entity instance) {
-		return UnofficialMonumentaModClient.options.highlightMaskedAssassins && Objects.equals(Locations.getShortShard(), "ruin") && instance.getDisplayName().getString().equalsIgnoreCase("masked assassin") ? Formatting.RED.getColorValue() : instance.getTeamColorValue();
+		return UnofficialMonumentaModClient.options.highlightMaskedAssassins && Objects.equals(Locations.getShortShard(), "ruin") &&
+				instance.getDisplayName().getString().equalsIgnoreCase("masked assassin") ? Formatting.RED.getColorValue() : instance.getTeamColorValue();
 	}
 }
