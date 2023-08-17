@@ -19,7 +19,6 @@
     "MinecraftClientMixin",
     "PlayerListHudAccessor",
     "PlayerListHudMixin",
-    "ReloadableResourceManagerImplMixin",
     "ThreadExecutorMixin",
     "ThrowablePotionItemMixin",
     "item.ItemStackAccessor",
@@ -30,5 +29,8 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [
+    "ReloadableResourceManagerImplMixin"
+  ]
 }

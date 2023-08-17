@@ -1,0 +1,10 @@
+{
+  "sources": [
+    {
+      "type": "namespace",
+      "source": "situationals",
+      "prefix": "",
+      "namespace": "unofficial-monumenta-mod"
+    }
+  ]
+}

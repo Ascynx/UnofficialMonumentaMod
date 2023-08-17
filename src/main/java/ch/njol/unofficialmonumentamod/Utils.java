@@ -1,8 +1,12 @@
 package ch.njol.unofficialmonumentamod;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import java.awt.Rectangle;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
@@ -201,4 +205,21 @@ public abstract class Utils {
 		}
 	}
 
+	private static final int OUTLINE_COLOR = 0xFFadacac;
+	public static void renderOutline(MatrixStack matrices, Rectangle pos) {
+		//x1 x2
+		DrawableHelper.fill(matrices, pos.x, pos.y - 1, (int) pos.getMaxX(), pos.y + 1, OUTLINE_COLOR);
+		//y1 y2
+		DrawableHelper.fill(matrices, (int) pos.getMaxX() - 1, pos.y, (int) pos.getMaxX() + 1, (int) pos.getMaxY(), OUTLINE_COLOR);
+		//x2 x1
+		DrawableHelper.fill(matrices, (int) pos.getMaxX(), (int) pos.getMaxY() - 1, pos.x, (int) pos.getMaxY() + 1, OUTLINE_COLOR);
+		//y2 y1
+		DrawableHelper.fill(matrices, pos.x - 1, (int) pos.getMaxY(), pos.x + 1, pos.y, OUTLINE_COLOR);
+	}
+
+	private static final Pattern IDENTIFIER_SANITATION_PATTERN = Pattern.compile("[^a-zA-Z0-9/._-]");
+
+	public static String sanitizeForIdentifier(String string) {
+		return IDENTIFIER_SANITATION_PATTERN.matcher(string).replaceAll("_").toLowerCase(Locale.ROOT);
+	}
 }

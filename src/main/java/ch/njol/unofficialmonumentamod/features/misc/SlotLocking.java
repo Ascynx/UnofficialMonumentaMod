@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.features.misc;
 
 import ch.njol.minecraft.uiframework.ModSpriteAtlasHolder;
+import ch.njol.unofficialmonumentamod.Atlases;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.mixins.KeyBindingAccessor;
@@ -90,14 +91,12 @@ public class SlotLocking {
 		public LockedSlot[] lockedSlots = new LockedSlot[41];
 	}
 	
-	private static ModSpriteAtlasHolder atlas;
+	public static Identifier LOCK;
+	public static Identifier LEFT_CLICK_LOCK;
+	public static Identifier RIGHT_CLICK_LOCK;
+	public static Identifier DROP_LOCK;
 	
-	private static Identifier LOCK;
-	private static Identifier LEFT_CLICK_LOCK;
-	private static Identifier RIGHT_CLICK_LOCK;
-	private static Identifier DROP_LOCK;
-	
-	private static Identifier BASE_LOCK;
+	public static Identifier BASE_LOCK;
 
 	public static KeyBinding LOCK_KEY = new KeyBinding("unofficial-monumenta-mod.keybinds.lock_slot", GLFW.GLFW_KEY_L, "unofficial-monumenta-mod.keybinds.category");
 
@@ -119,19 +118,6 @@ public class SlotLocking {
 	private int ticksSinceLastLockKeyClick = -1;
 
 	private Slot activeSlot = null;
-	
-	public static void registerSprites() {
-		if (atlas == null) {
-			atlas = ModSpriteAtlasHolder.createAtlas(UnofficialMonumentaModClient.MOD_IDENTIFIER, "gui");
-		} else {
-			atlas.clearSprites();
-		}
-		LOCK = atlas.registerSprite("locks/locked");
-		LEFT_CLICK_LOCK = atlas.registerSprite("locks/left-click");
-		RIGHT_CLICK_LOCK = atlas.registerSprite("locks/right-click");
-		DROP_LOCK = atlas.registerSprite("locks/drop");
-		BASE_LOCK  = atlas.registerSprite("locks/base-lock");
-	}
 
 	private boolean isLockedSlot(LockedSlot locked) {
 		if (locked == null) {
@@ -146,6 +132,7 @@ public class SlotLocking {
 	}
 
 	public void drawSlot(Screen screen, MatrixStack matrices, Slot slot) {
+		ModSpriteAtlasHolder atlas = Atlases.GUI_ATLAS;
 		int originX = slot.x;
 		int originY = slot.y;
 		
@@ -189,6 +176,7 @@ public class SlotLocking {
 		if (!(MinecraftClient.getInstance().currentScreen instanceof HandledScreen<?> containerScreen) || MinecraftClient.getInstance().player == null || activeSlot == null) {
 			return;
 		}
+		ModSpriteAtlasHolder atlas = Atlases.GUI_ATLAS;
 		
 		circleSize.tick();
 		

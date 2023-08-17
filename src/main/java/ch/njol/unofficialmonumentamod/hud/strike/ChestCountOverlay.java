@@ -39,6 +39,7 @@ public class ChestCountOverlay extends HudElement {
 
 	@Override
 	protected void render(MatrixStack matrices, float tickDelta) {
+		matrices.push();
 		final TextRenderer tr = MinecraftClient.getInstance().textRenderer;
 
 		DrawableHelper.fill(matrices, 0, 0, WIDTH, HEIGHT, MinecraftClient.getInstance().options.getTextBackgroundColor(UnofficialMonumentaModClient.options.overlay_opacity));
@@ -60,6 +61,7 @@ public class ChestCountOverlay extends HudElement {
 		int y = HEIGHT / 2 - tr.fontHeight / 2;
 
 		tr.draw(matrices, text, x, y, color);
+		matrices.pop();
 	}
 
 

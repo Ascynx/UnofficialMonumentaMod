@@ -1,5 +1,6 @@
 package ch.njol.unofficialmonumentamod;
 
+import ch.njol.unofficialmonumentamod.hud.SituationalWidget;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -100,6 +101,30 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 
 	}
 
+	/**
+	 * Received on connection and when the equipment is changed
+	 */
+	public static class InitialSituationalPacket {
+		final static String _type = "InitialSituationalPacket";
+
+		public Situational[] situationals;
+
+		public static class Situational {
+			public String name;
+		}
+	}
+
+	/**
+	 * Received whenever a situational's state is updated.
+	 */
+	public static class SituationalStateUpdatePacket {
+		final static String _type = "SituationalStateUpdatePacket";
+
+		public String name;
+
+		public SituationalWidget.SituationalState state;
+	}
+
 	@Override
 	public void receive(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
 		String message = buf.readCharSequence(buf.readableBytes(), StandardCharsets.UTF_8).toString();
@@ -125,6 +150,14 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 				case "StrikeChestUpdatePacket" -> {
 					StrikeChestUpdatePacket packet = gson.fromJson(json, StrikeChestUpdatePacket.class);
 					chestCountOverlay.onStrikeChestUpdatePacket(packet);
+				}
+				case InitialSituationalPacket._type -> {
+					InitialSituationalPacket packet = gson.fromJson(json, InitialSituationalPacket.class);
+					SituationalWidget.INSTANCE.onInitSituationalPacket(packet);
+				}
+				case SituationalStateUpdatePacket._type -> {
+					SituationalStateUpdatePacket packet = gson.fromJson(json, SituationalStateUpdatePacket.class);
+					SituationalWidget.INSTANCE.onSituationalUpdatePacket(packet);
 				}
 			}
 		});

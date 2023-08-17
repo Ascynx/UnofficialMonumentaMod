@@ -13,6 +13,7 @@ import ch.njol.unofficialmonumentamod.features.misc.SlotLocking;
 import ch.njol.unofficialmonumentamod.features.misc.managers.Notifier;
 import ch.njol.unofficialmonumentamod.features.misc.notifications.LocationNotifier;
 import ch.njol.unofficialmonumentamod.features.spoof.TextureSpoofer;
+import ch.njol.unofficialmonumentamod.hud.SituationalWidget;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
 import ch.njol.unofficialmonumentamod.options.ConfigMenu;
@@ -62,7 +63,6 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-
 		ModelPredicateProviderRegistry.register(new Identifier("on_head"),
 			(itemStack, clientWorld, livingEntity, seed) -> livingEntity != null && itemStack == livingEntity.getEquippedStack(EquipmentSlot.HEAD) ? 1 : 0);
 
@@ -92,6 +92,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			abilityHandler.tick();
 			effectOverlay.tick();
 			Calculator.tick();
+			SituationalWidget.INSTANCE.tick();
 			SlotLocking.getInstance().onEndTick();
 		});
 
@@ -106,6 +107,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 		Hud.INSTANCE.addElement(AbilitiesHud.INSTANCE);
 		Hud.INSTANCE.addElement(ChestCountOverlay.INSTANCE);
+		Hud.INSTANCE.addElement(SituationalWidget.INSTANCE);
 		Hud.INSTANCE.addElement(effectOverlay);
 
 		ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> {
@@ -143,6 +145,13 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		return onMM;
 	}
 
+	public static void loadResources() {
+		UnofficialMonumentaModClient.locations.reload();
+		UnofficialMonumentaModClient.spoofer.reload();
+		ShardData.reload();
+		SlotLocking.getInstance().reload();
+	}
+
 	public static void saveConfig() {
 		MinecraftClient.getInstance().execute(() -> {
 			try {
@@ -150,5 +159,5 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			} catch (IOException ignore) {}
 		});
 	}
-
+	//TODO implement container search.
 }

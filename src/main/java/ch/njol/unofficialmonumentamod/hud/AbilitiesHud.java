@@ -5,6 +5,7 @@ import ch.njol.minecraft.uiframework.ModSpriteAtlasHolder;
 import ch.njol.minecraft.uiframework.hud.Hud;
 import ch.njol.minecraft.uiframework.hud.HudElement;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
+import ch.njol.unofficialmonumentamod.Atlases;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.options.Options;
@@ -29,40 +30,16 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 
 public class AbilitiesHud extends HudElement {
-
-	private static ModSpriteAtlasHolder atlas;
-
-	private static Identifier COOLDOWN_OVERLAY;
-	private static Identifier COOLDOWN_FLASH;
-	private static Identifier UNKNOWN_ABILITY_ICON;
-	private static Identifier UNKNOWN_CLASS_BORDER;
+	public static Identifier COOLDOWN_OVERLAY;
+	public static Identifier COOLDOWN_FLASH;
+	public static Identifier UNKNOWN_ABILITY_ICON;
+	public static Identifier UNKNOWN_CLASS_BORDER;
 
 	private String draggedAbility = null;
 
 	public static AbilitiesHud INSTANCE = new AbilitiesHud();
 
 	private AbilitiesHud() {
-	}
-
-	public static void registerSprites() {
-		if (atlas == null) {
-			atlas = ModSpriteAtlasHolder.createAtlas(UnofficialMonumentaModClient.MOD_IDENTIFIER, "abilities");
-		} else {
-			atlas.clearSprites();
-		}
-		COOLDOWN_OVERLAY = atlas.registerSprite("cooldown_overlay");
-		COOLDOWN_FLASH = atlas.registerSprite("off_cooldown");
-		UNKNOWN_ABILITY_ICON = atlas.registerSprite("unknown_ability");
-		UNKNOWN_CLASS_BORDER = atlas.registerSprite("unknown_border");
-		List<Identifier> foundIcons = MinecraftClient.getInstance().getResourceManager().findResources("textures/abilities", path -> true)
-			                              .keySet().stream()
-			                              .filter(id -> id.getNamespace().equals(UnofficialMonumentaModClient.MOD_IDENTIFIER)).toList();
-		for (Identifier foundIcon : foundIcons) {
-			if (foundIcon == COOLDOWN_OVERLAY || foundIcon == COOLDOWN_FLASH || foundIcon == UNKNOWN_ABILITY_ICON || foundIcon == UNKNOWN_CLASS_BORDER) {
-				continue;
-			}
-			atlas.registerSprite(foundIcon.getPath().substring("textures/abilities/".length(), foundIcon.getPath().length() - ".png".length()));
-		}
 	}
 
 	public boolean renderInFrontOfChat() {
@@ -109,6 +86,8 @@ public class AbilitiesHud extends HudElement {
 		if (client.options.hudHidden || client.player == null || client.player.isSpectator()) {
 			return;
 		}
+		ModSpriteAtlasHolder atlas = Atlases.ABILITIES_ATLAS;
+
 		Options options = UnofficialMonumentaModClient.options;
 
 		AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
@@ -247,18 +226,18 @@ public class AbilitiesHud extends HudElement {
 	private final Map<String, Float> easedDurations = new HashMap<>();
 
 	private void drawDurationBar(MatrixStack matrices, String abilityName, int originX, int originY, int remainingDuration, int maxDuration, String className) {
-		final int HEIGHT = 12;
-		final int MARGIN = 6;
+		final int HEIGHT = 8;
+		final int MARGIN = 4;
 
 		Options options = UnofficialMonumentaModClient.options;
 		int iconSize = options.abilitiesDisplay_iconSize;
 
 		matrices.push();
 		if (options.abilitiesDisplay_horizontal) {
-			matrices.translate(originX - 4, originY + iconSize + MARGIN, 0);
-			matrices.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(90));
+			matrices.translate(originX, originY - MARGIN, 0);
 		} else {
-			matrices.translate(originX - MARGIN, originY - 4, 0);
+			matrices.translate(originX - MARGIN, originY + iconSize - MARGIN, 0);
+			matrices.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(90));
 		}
 		
 		Sprite barSprite = getClassDuration(className, "full");
@@ -278,43 +257,39 @@ public class AbilitiesHud extends HudElement {
 		//the texture is a little smol, so it doesn't have enough full pixels for when it's between full and the first change and when it's between empty and the last change.
 		//it's sad, but I'm sure it's not bad enough to cause an outrage over, if you are annoyed by it, you can fix it yourself >:).
 		drawPartialSprite(matrices, barSprite, x, y, barWidth, HEIGHT, 0, 0, easedDuration / maxDuration, 1);
-		drawSprite(matrices, getClassDuration(className, "overlay"), x - MARGIN, y, width, HEIGHT);
+		drawSprite(matrices, getClassDuration(className, "overlay"), x, y, width, HEIGHT);
 		matrices.pop();
-	}
-
-	private static final Pattern IDENTIFIER_SANITATION_PATTERN = Pattern.compile("[^a-zA-Z0-9/._-]");
-
-	private static String sanitizeForIdentifier(String string) {
-		return IDENTIFIER_SANITATION_PATTERN.matcher(string).replaceAll("_").toLowerCase(Locale.ROOT);
 	}
 
 	private static final Map<String, Identifier> abilityIdentifiers = new HashMap<>();
 
 	private Sprite getClassDuration(String className, String part) {
+		ModSpriteAtlasHolder atlas = Atlases.ABILITIES_ATLAS;
 		String id = className + "/" + className + "_bar_" + part;
-		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, Utils.sanitizeForIdentifier(key)));
 		Sprite sprite = atlas.getSprite(baseIdentifier);
 		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return sprite;
 		}
 
-		Identifier e = abilityIdentifiers.computeIfAbsent("shaman/shaman_bar_" + part, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
-		return atlas.getSprite(e);//TODO get an unknown class duration thingy here.
+		Identifier e = abilityIdentifiers.computeIfAbsent("shaman/shaman_bar_" + part, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, Utils.sanitizeForIdentifier(key)));
+		return atlas.getSprite(e);
 	}
 
 	private Sprite getAbilityIcon(AbilityHandler.AbilityInfo abilityInfo) {
+		ModSpriteAtlasHolder atlas = Atlases.ABILITIES_ATLAS;
 		String id = (abilityInfo.className == null ? "unknown" : abilityInfo.className) + "/" + abilityInfo.name + (abilityInfo.mode == null ? "" : "_" + abilityInfo.mode);
 
 		// for abilities with charges, use a special "_max" sprite when charges are full (and the sprite exists)
 		if ((abilityInfo.maxCharges > 1 || abilityInfo.maxCharges == 1 && abilityInfo.initialCooldown <= 0) && abilityInfo.charges == abilityInfo.maxCharges) {
-			Identifier maxIdentifier = abilityIdentifiers.computeIfAbsent(id + "_max", key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+			Identifier maxIdentifier = abilityIdentifiers.computeIfAbsent(id + "_max", key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, Utils.sanitizeForIdentifier(key)));
 			Sprite sprite = atlas.getSprite(maxIdentifier);
 			if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 				return sprite;
 			}
 		}
 
-		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, Utils.sanitizeForIdentifier(key)));
 		Sprite sprite = atlas.getSprite(baseIdentifier);
 		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return sprite;
@@ -327,10 +302,11 @@ public class AbilitiesHud extends HudElement {
 	private static Identifier getBorderFileIdentifier(String className, boolean silenced) {
 		return borderIdentifiers.computeIfAbsent((className == null ? "unknown" : className) + (silenced ? "_silenced" : ""),
 			key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER,
-				sanitizeForIdentifier(className == null ? "unknown" : className) + "/border" + (silenced ? "_silenced" : "")));
+					Utils.sanitizeForIdentifier(className == null ? "unknown" : className) + "/border" + (silenced ? "_silenced" : "")));
 	}
 
 	private Sprite getSpriteOrDefault(Identifier identifier, Identifier defaultIdentifier) {
+		ModSpriteAtlasHolder atlas = Atlases.ABILITIES_ATLAS;
 		Sprite sprite = atlas.getSprite(identifier);
 		if (sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return atlas.getSprite(defaultIdentifier);

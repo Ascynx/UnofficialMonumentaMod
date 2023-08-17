@@ -41,6 +41,25 @@ public class Options implements ch.njol.minecraft.config.Options {
 	@FloatSlider(min = 1.5F, max = 20F, step = 0.1F, unit = " seconds")
 	public float notifierShowTime = 5F;
 
+
+	@Dropdown("situationalsoverlay")
+	@Category("misc")
+	public boolean enableSituationalsOverlay = true;
+	@Dropdown("situationalsoverlay")
+	@Category("misc")
+	public ElementPosition situationalsPosition = new ElementPosition(0f, 0, 0.0f, 0, 0f, 0);
+	@Dropdown("situationalsoverlay")
+	@Category("misc")
+	public boolean situationals_horizontal = true;
+	@Dropdown("situationalsoverlay")
+	@Category("misc")
+	@FloatSlider(min = 0.2F, max = 3F, step = 0.2F, unit = " %", unitStep = 100)
+	public float situationals_scalefactor = 1.0f;
+	@Dropdown("situationalsoverlay")
+	@Category("misc")
+	public boolean situationals_renderbg = true;
+
+
 	// TODO implement item cooldown display
 	// requires sever-side adaptions to send the cooldown (on use and on connect)
 
@@ -64,7 +83,7 @@ public class Options implements ch.njol.minecraft.config.Options {
 	@Category("misc")
 	public transient DescriptionLine overlay_misc;
 	@Category("misc")
-	@FloatSlider(min = 0F, max = 1F, step = 0.05F, unit = "%")
+	@FloatSlider(min = 0F, max = 1F, step = 0.05F, unit = "%", unitStep = 100)
 	public float overlay_opacity = 0.3F;
 
 	@Dropdown("lock")

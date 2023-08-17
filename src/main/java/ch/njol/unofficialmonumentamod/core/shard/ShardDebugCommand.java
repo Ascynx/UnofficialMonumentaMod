@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.core.shard;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.core.commands.MainCommand;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -35,7 +36,7 @@ public class ShardDebugCommand {
         try {
             final HashMap<String, ShardData.Shard> shards = ShardData.getShards();
 
-            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("Currently loaded shards:").setStyle(Style.EMPTY.withColor(Formatting.AQUA).withBold(true)));
+            MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(Text.literal("Currently loaded shards:").setStyle(MainCommand.TITLE_STYLE.withBold(true)));
 
             for (Map.Entry<String, ShardData.Shard> shardEntry : shards.entrySet()) {
                 MutableText shardText = Text.literal(shardEntry.getKey());
@@ -94,22 +95,22 @@ public class ShardDebugCommand {
             boolean loadedCorrectly = !isSearching && !Objects.equals(lastShard, currentShard);
 
             //count: (if max exists then count/max else just count) loaded shard: lastShard, current shard: currentShard
-            MutableText text = Text.literal("[Current Shard]\n").setStyle(Style.EMPTY.withColor(Formatting.AQUA));
+            MutableText text = Text.literal("[Current Shard]\n").setStyle(MainCommand.TITLE_STYLE);
 
-            text.append(Text.literal("Count: ").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)));
-            text.append(Text.literal((max != null ? count + "/" + max : count) + "\n").setStyle(Style.EMPTY.withColor(Formatting.DARK_AQUA)));
+            text.append(Text.literal("Count: ").setStyle(MainCommand.KEY_STYLE));
+            text.append(Text.literal((max != null ? count + "/" + max : count) + "\n").setStyle(MainCommand.VALUE_STYLE));
 
-            text.append(Text.literal("Last shard: ").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)));
-            text.append(Text.literal(lastShard).setStyle(Style.EMPTY.withColor(Formatting.DARK_AQUA)));
+            text.append(Text.literal("Last shard: ").setStyle(MainCommand.KEY_STYLE));
+            text.append(Text.literal(lastShard).setStyle(MainCommand.VALUE_STYLE));
 
-            text.append(Text.literal(" | Current shard: ").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)));
-            text.append(Text.literal(currentShard + "\n").setStyle(Style.EMPTY.withColor(Formatting.DARK_AQUA)));
+            text.append(Text.literal(" | Current shard: ").setStyle(MainCommand.KEY_STYLE));
+            text.append(Text.literal(currentShard + "\n").setStyle(MainCommand.VALUE_STYLE));
 
-            text.append(Text.literal("Loaded correctly: ").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)));
-            text.append(Text.literal(loadedCorrectly ? "Yes" : "No").setStyle(Style.EMPTY.withColor(Formatting.DARK_AQUA)));
+            text.append(Text.literal("Loaded correctly: ").setStyle(MainCommand.KEY_STYLE));
+            text.append(Text.literal(loadedCorrectly ? "Yes" : "No").setStyle(MainCommand.VALUE_STYLE));
 
-            text.append(Text.literal(" | Was edited: ").setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)));
-            text.append(Text.literal(isEdited ? "Yes" : "No").setStyle(Style.EMPTY.withColor(Formatting.DARK_AQUA)));
+            text.append(Text.literal(" | Was edited: ").setStyle(MainCommand.KEY_STYLE));
+            text.append(Text.literal(isEdited ? "Yes" : "No").setStyle(MainCommand.VALUE_STYLE));
 
             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);
             return 0;
