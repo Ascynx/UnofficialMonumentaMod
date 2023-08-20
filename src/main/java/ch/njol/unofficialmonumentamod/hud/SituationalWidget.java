@@ -32,12 +32,15 @@ public class SituationalWidget extends HudElement {
 
     public final Map<String, SituationalData> equippedSituationals = new HashMap<>();
 
-    public void onInitSituationalPacket(ChannelHandler.InitialSituationalPacket packet) {
+    public void onInitSituationalPacket(ChannelHandler.InitialEnchantmentPacket packet) {
         equippedSituationals.clear();
+        if (packet.enchantments == null) {
+            return;
+        }
 
-        for (ChannelHandler.InitialSituationalPacket.Situational situational: packet.situationals) {
+        for (ChannelHandler.InitialEnchantmentPacket.Enchantment enchantment: packet.enchantments) {
             SituationalData data = new SituationalData();
-            data.name = situational.name;
+            data.name = enchantment.name;
 
             equippedSituationals.put(data.name, data);
         }

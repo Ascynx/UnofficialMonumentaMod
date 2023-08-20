@@ -104,12 +104,12 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 	/**
 	 * Received on connection and when the equipment is changed
 	 */
-	public static class InitialSituationalPacket {
-		final static String _type = "InitialSituationalPacket";
+	public static class InitialEnchantmentPacket {
+		final static String _type = "InitialEnchantmentPacket";
 
-		public Situational[] situationals;
+		public Enchantment @Nullable [] enchantments;
 
-		public static class Situational {
+		public static class Enchantment {
 			public String name;
 		}
 	}
@@ -151,8 +151,8 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 					StrikeChestUpdatePacket packet = gson.fromJson(json, StrikeChestUpdatePacket.class);
 					chestCountOverlay.onStrikeChestUpdatePacket(packet);
 				}
-				case InitialSituationalPacket._type -> {
-					InitialSituationalPacket packet = gson.fromJson(json, InitialSituationalPacket.class);
+				case InitialEnchantmentPacket._type -> {
+					InitialEnchantmentPacket packet = gson.fromJson(json, InitialEnchantmentPacket.class);
 					SituationalWidget.INSTANCE.onInitSituationalPacket(packet);
 				}
 				case SituationalStateUpdatePacket._type -> {
