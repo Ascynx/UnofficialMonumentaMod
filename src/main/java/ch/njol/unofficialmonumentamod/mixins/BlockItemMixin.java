@@ -1,7 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.Utils;
+import ch.njol.unofficialmonumentamod.utils.Utils;
 import java.util.Arrays;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

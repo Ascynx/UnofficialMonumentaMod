@@ -3,7 +3,8 @@ package ch.njol.unofficialmonumentamod.features.misc;
 import ch.njol.minecraft.uiframework.ModSpriteAtlasHolder;
 import ch.njol.unofficialmonumentamod.Atlases;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.Utils;
+import ch.njol.unofficialmonumentamod.utils.GuiUtils;
+import ch.njol.unofficialmonumentamod.utils.Utils;
 import ch.njol.unofficialmonumentamod.mixins.KeyBindingAccessor;
 import ch.njol.unofficialmonumentamod.mixins.screen.HandledScreenAccessor;
 import com.google.gson.Gson;
@@ -98,7 +99,7 @@ public class SlotLocking {
 	
 	public static Identifier BASE_LOCK;
 
-	public static KeyBinding LOCK_KEY = new KeyBinding("unofficial-monumenta-mod.keybinds.lock_slot", GLFW.GLFW_KEY_L, "unofficial-monumenta-mod.keybinds.category");
+	public static KeyBinding LOCK_KEY = new KeyBinding(UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".lock_slot", GLFW.GLFW_KEY_L, UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".keybinds.category");
 
 	private static final Style lockTextStyle = Style.EMPTY.withColor(TextColor.fromRgb(0xc49417)).withBold(true);
 
@@ -205,7 +206,7 @@ public class SlotLocking {
 			LockedSlot slot = config.lockedSlots[slotIndex];
 			//is active and being held
 			
-			Utils.drawFilledPolygon(matrices, absoluteSlotX + 8, absoluteSlotY + 8, circleSize.getValue(), 360, 0x404040a0);
+			GuiUtils.drawFilledPolygon(matrices, absoluteSlotX + 8, absoluteSlotY + 8, circleSize.getValue(), 360, 0x404040a0);
 			
 			drawSprite(matrices, atlas.getSprite(LEFT_CLICK_LOCK), absoluteSlotX - 15, absoluteSlotY - 15, 16, 16);
 			if (slot.lockPickup) {

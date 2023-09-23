@@ -3,10 +3,12 @@ package ch.njol.unofficialmonumentamod.features.discordrpc;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import ch.njol.unofficialmonumentamod.features.locations.Locations;
+import ch.njol.unofficialmonumentamod.utils.Utils;
 import club.minnced.discord.rpc.DiscordEventHandlers;
 import club.minnced.discord.rpc.DiscordRPC;
 import club.minnced.discord.rpc.DiscordRichPresence;
 
+import java.text.ParseException;
 import java.util.*;
 
 import net.fabricmc.loader.api.FabricLoader;
@@ -129,9 +131,9 @@ public class DiscordPresence {
 
 					//set details
 					String detail = UnofficialMonumentaModClient.options.discordDetails;
-					ArrayList<Match> replacers = getDetectedDetails(detail);
+					ArrayList<Utils.Formatter> replacers = getFormatters();
 
-					for (Match replacer: replacers) {
+					for (Utils.Formatter replacer: replacers) {
 						switch (replacer.match) {
 							case "player" -> {
 								if (mc.player == null) {
@@ -195,53 +197,46 @@ public class DiscordPresence {
 		return shardOfficialName;
 	}
 
-	public void updateDiscordRPCDetails() {
-		shouldUpdate = true;
-		getDetectedDetails(UnofficialMonumentaModClient.options.discordDetails);
-	}
-
-	private final ArrayList<Match> cachedReplacers = new ArrayList<>();
+	private static boolean discordDetailsInvalid = false;
+	private final ArrayList<Utils.Formatter> cachedReplacers = new ArrayList<>();
 	private boolean shouldUpdate = true;
 
-	private ArrayList<Match> getDetectedDetails(String detailString) {
-		if (!cachedReplacers.isEmpty() && shouldUpdate) {
+	public void updateDiscordRPCDetails() {
+		shouldUpdate = true;
+		discordDetailsInvalid = false;
+		updateFormatters(UnofficialMonumentaModClient.options.discordDetails);
+	}
+
+	private void updateFormatters(String searchString) {
+		if (discordDetailsInvalid || !shouldUpdate) {
+			return;
+		}
+
+		try {
+			cachedReplacers.addAll(Utils.getFormatters(searchString));
+		} catch (ParseException e) {
+			String errorMessage = "Caught error whilst trying to get formatters in string: " + searchString;
+			int offset = errorMessage.length() - searchString.length() + e.getErrorOffset();
+			UnofficialMonumentaModClient.LOGGER.error(errorMessage);
+			UnofficialMonumentaModClient.LOGGER.error(" ".repeat(offset) + "^ " + e.getMessage());
+			discordDetailsInvalid = true;
+		} finally {
+			shouldUpdate = false;
+		}
+	}
+
+	public ArrayList<Utils.Formatter> getFormatters() {
+		if (!cachedReplacers.isEmpty() && !shouldUpdate) {
 			return cachedReplacers;
 		}
 
-		cachedReplacers.clear();
-		int lastOpenBracketFound = -1;
-		StringBuilder currentReplacerString = new StringBuilder();
-
-		for (int i = 0; i < detailString.length(); i++) {
-			char c = detailString.charAt(i);
-
-			if (c == '{' && lastOpenBracketFound == -1) {
-				lastOpenBracketFound = i;
-			} else if (c == '}' && lastOpenBracketFound != -1) {
-				//add the replacer to the matches
-				cachedReplacers.add(new Match(currentReplacerString.toString()));
-				//reset the string builder and open bracket index
-				currentReplacerString = new StringBuilder();
-				lastOpenBracketFound = -1;
-			} else if ((Character.isDigit(c) || Character.isLetter(c)) && lastOpenBracketFound != -1) {
-				currentReplacerString.append(c);
-			}
+		updateFormatters(UnofficialMonumentaModClient.options.discordDetails);
+		if (discordDetailsInvalid) {
+			//return empty list if invalid.
+			return new ArrayList<>();
 		}
 
-		shouldUpdate = false;
 		return cachedReplacers;
-	}
-
-	private static class Match {
-		String match;
-
-		Match(String match) {
-			this.match = match;
-		}
-
-		String replaceIn(String string, String replaceValue) {
-			return string.replace("{" + match + "}", replaceValue);
-		}
 	}
 
 }

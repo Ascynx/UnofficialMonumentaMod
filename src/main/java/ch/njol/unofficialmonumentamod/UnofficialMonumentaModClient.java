@@ -43,6 +43,7 @@ import org.lwjgl.glfw.GLFW;
 public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 	public static final String MOD_IDENTIFIER = "unofficial-monumenta-mod";
+	public static final String MINIMIZED_IDENTIFIER = "umm";
 
 	public static final String OPTIONS_FILE_NAME = "unofficial-monumenta-mod.json";
 
@@ -59,7 +60,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 	public static final AbilityHandler abilityHandler = new AbilityHandler();
 
-	public static KeyBinding toggleCalculatorKeyBinding = new KeyBinding("unofficial-monumenta-mod.keybinds.toggleCalculator", GLFW.GLFW_KEY_K, "unofficial-monumenta-mod.keybinds.category");
+	public static KeyBinding toggleCalculatorKeyBinding = new KeyBinding(MINIMIZED_IDENTIFIER + ".keybinds.toggleCalculator", GLFW.GLFW_KEY_K, MINIMIZED_IDENTIFIER + ".keybinds.category");
 
 	@Override
 	public void onInitializeClient() {
@@ -72,11 +73,9 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			// Config file doesn't exist, so use default config (and write config file).
 			try {
 				Config.writeJsonFile(options, OPTIONS_FILE_NAME);
-			} catch (IOException ex) {
-				// ignore
-			}
+			} catch (IOException ignore) {}
 		} catch (IOException | JsonParseException e) {
-			// Any issue with the config file silently reverts to the default config
+			// Any issue with the config file, revert to default.
 			UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to load configuration file", e);
 		}
 

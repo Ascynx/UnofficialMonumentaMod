@@ -5,7 +5,8 @@ import ch.njol.minecraft.uiframework.hud.HudElement;
 import ch.njol.unofficialmonumentamod.Atlases;
 import ch.njol.unofficialmonumentamod.ChannelHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.Utils;
+import ch.njol.unofficialmonumentamod.utils.GuiUtils;
+import ch.njol.unofficialmonumentamod.utils.Utils;
 import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public class SituationalWidget extends HudElement {
 
         if (UnofficialMonumentaModClient.options.situationals_renderbg) {
             DrawableHelper.fill(matrices, editModeDimension.x, editModeDimension.y, (int) editModeDimension.getMaxX(), (int) editModeDimension.getMaxY(), BACKGROUND_COLOR);
-            Utils.renderOutline(matrices, editModeDimension);
+            GuiUtils.renderOutline(matrices, editModeDimension);
         }
 
         //render from max to min position.

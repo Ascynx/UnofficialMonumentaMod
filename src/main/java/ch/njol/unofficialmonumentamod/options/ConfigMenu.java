@@ -17,14 +17,14 @@ public class ConfigMenu implements ModMenuApi {
 
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return ModMenuConfigSetup.getModConfigScreenFactory(UnofficialMonumentaModClient.MOD_IDENTIFIER + ".config", () -> UnofficialMonumentaModClient.options, new Options());
+		return ModMenuConfigSetup.getModConfigScreenFactory(UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".config", () -> UnofficialMonumentaModClient.options, new Options());
 	}
 
 	public static void registerTypes() {
 		ClothConfigSetup.registerType(ElementPosition.class, (value, defaultValue, field, translatePath, saveConsumer) -> {
 			List<AbstractConfigListEntry> entries = new ArrayList<>(); // API requires raw type
 			for (Field posField : ElementPosition.class.getDeclaredFields()) {
-				entries.add(ClothConfigSetup.buildConfigEntry(value, defaultValue, posField, UnofficialMonumentaModClient.MOD_IDENTIFIER + ".config.position"));
+				entries.add(ClothConfigSetup.buildConfigEntry(value, defaultValue, posField, UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".config.position"));
 			}
 			return ConfigEntryBuilderImpl.create()
 				       .startSubCategory(Text.translatable(translatePath), entries)

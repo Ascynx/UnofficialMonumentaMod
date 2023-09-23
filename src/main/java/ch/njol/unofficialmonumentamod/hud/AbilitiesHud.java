@@ -7,7 +7,8 @@ import ch.njol.minecraft.uiframework.hud.HudElement;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.Atlases;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import ch.njol.unofficialmonumentamod.Utils;
+import ch.njol.unofficialmonumentamod.utils.GuiUtils;
+import ch.njol.unofficialmonumentamod.utils.Utils;
 import ch.njol.unofficialmonumentamod.options.Options;
 import com.mojang.blaze3d.systems.RenderSystem;
 import java.awt.Rectangle;
@@ -144,7 +145,7 @@ public class AbilitiesHud extends HudElement {
 							float durationFraction = abilityInfo.initDuration <= 0 ? 0 : abilityInfo.lerp.getValue() / abilityInfo.initDuration;
 							if (durationFraction > 0) {
 								if (options.abilitiesDisplay_durationRenderMode == AbilityHandler.DurationRenderMode.CIRCLE) {
-									Utils.drawPartialHollowPolygon(
+									GuiUtils.drawPartialHollowPolygon(
 											matrices,
 											(int) scaledX + (iconSize / 2),
 											(int) scaledY + (iconSize / 2),
