@@ -126,7 +126,7 @@ public class EffectOverlay extends HudElement {
 
 	@Override
 	protected boolean isVisible() {
-		return !this.effects.isEmpty();
+		return UnofficialMonumentaModClient.options.effect_compress ? !getCumulativeEffects().isEmpty() : !this.effects.isEmpty();
 	}
 
 	@Override
