@@ -99,7 +99,7 @@ public class SlotLocking {
 	
 	public static Identifier BASE_LOCK;
 
-	public static KeyBinding LOCK_KEY = new KeyBinding(UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".lock_slot", GLFW.GLFW_KEY_L, UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".keybinds.category");
+	public static KeyBinding LOCK_KEY = new KeyBinding(UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".keybinds.lock_slot", GLFW.GLFW_KEY_L, UnofficialMonumentaModClient.MINIMIZED_IDENTIFIER + ".keybinds.category");
 
 	private static final Style lockTextStyle = Style.EMPTY.withColor(TextColor.fromRgb(0xc49417)).withBold(true);
 
@@ -270,10 +270,14 @@ public class SlotLocking {
 	}
 	
 	private static int getLockKeyCode() {
-		return ((KeyBindingAccessor) LOCK_KEY).getBoundKey().getCode();
+		return LOCK_KEY.isUnbound() ? GLFW.GLFW_KEY_UNKNOWN : ((KeyBindingAccessor) LOCK_KEY).getBoundKey().getCode();
 	}
 
 	private static boolean isLockKeyPressed() {
+		if (LOCK_KEY.isUnbound()) {
+			return false;
+		}
+
 		if (Objects.equals(((KeyBindingAccessor) LOCK_KEY).getBoundKey().getCategory(), InputUtil.Type.MOUSE)) {
 			return GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), getLockKeyCode()) == 1;
 		} else {
@@ -311,7 +315,7 @@ public class SlotLocking {
 		final int scaledHeight = MinecraftClient.getInstance().getWindow().getScaledHeight();
 		double mouseX = MinecraftClient.getInstance().mouse.getX() * (double)scaledWidth / (double)MinecraftClient.getInstance().getWindow().getWidth();
 		double mouseY = MinecraftClient.getInstance().mouse.getY() * (double)scaledHeight / (double)MinecraftClient.getInstance().getWindow().getHeight();
-		if (LOCK_KEY.matchesKey(code, scancode) && !isHoldingLockKey) {
+		if (!LOCK_KEY.isUnbound() && LOCK_KEY.matchesKey(code, scancode) && !isHoldingLockKey) {
 			isHoldingLockKey = true;
 			
 			Slot slot = ((HandledScreenAccessor) containerScreen).doGetSlotAt(mouseX, mouseY);
@@ -455,20 +459,6 @@ public class SlotLocking {
 	}
 	
 	public void save() {
-		File file = getFile();
-		if (!file.exists()) {
-			try {
-				file.getParentFile().mkdirs();
-				file.createNewFile();
-			} catch (IOException e) {
-				UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to create files for slot locking data", e);
-			}
-		}
-		
-		try (FileWriter writer = new FileWriter(file)) {
-			writer.write(GSON.toJson(config));
-		} catch (Exception e) {
-			UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to save slot locking data", e);
-		}
+		Utils.saveCachedData(CACHE_PATH, config);
 	}
 }

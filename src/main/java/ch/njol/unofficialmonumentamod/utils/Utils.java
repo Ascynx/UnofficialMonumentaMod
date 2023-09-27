@@ -1,10 +1,16 @@
 package ch.njol.unofficialmonumentamod.utils;
 
+import ch.njol.minecraft.config.Config;
+import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import java.awt.Rectangle;
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.ItemStack;
@@ -191,6 +197,36 @@ public abstract class Utils {
 
 		public String replaceIn(String string, String replacedValue) {
 			return string.replace("{" + match + "}", replacedValue);
+		}
+	}
+
+	public static Rectangle setTopLeftAsOrigin(Rectangle a) {
+		if (a.getMaxX() < a.getX()) {
+			a = new Rectangle((int) a.getMaxX(), a.y, a.x, a.height);
+		}
+
+		if (a.getMaxY() < a.getY()) {
+			a = new Rectangle(a.x, (int) a.getMaxY(), a.width, a.y);
+		}
+
+		return a;
+	}
+
+	public static void saveCachedData(String path, Object data) {
+		File file = FabricLoader.getInstance().getConfigDir().resolve(path).toFile();
+		if (!file.exists()) {
+			try {
+				file.getParentFile().mkdirs();
+				file.createNewFile();
+			} catch (IOException e) {
+				UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to save cached data", e);
+			}
+
+			try {
+				Config.writeJsonFile(data, path);
+			} catch (IOException e) {
+				UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to save cached data", e);
+			}
 		}
 	}
 }
