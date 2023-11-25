@@ -1,5 +1,6 @@
 package ch.njol.unofficialmonumentamod;
 
+import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -19,10 +20,37 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 
 	private final Gson gson;
 	private final AbilityHandler abilityHandler;
+	private final ChestCountOverlay chestCountOverlay;
 
 	public ChannelHandler() {
 		gson = new GsonBuilder().create();
 		abilityHandler = UnofficialMonumentaModClient.abilityHandler;
+		chestCountOverlay = ChestCountOverlay.INSTANCE;
+	}
+
+	public static class EffectInfo {
+		public String UUID;
+		public int displayPriority;
+
+		public String name;
+		public Integer duration;
+		public double power;
+
+		public boolean positive;
+		public boolean percentage;
+	}
+
+	public static class MassEffectUpdatePacket {
+		String _type = "MassEffectUpdatePacket";
+
+		//when received, will clear stored effects.
+		public EffectInfo[] effects;
+	}
+
+	public static class EffectUpdatePacket {
+		String _type = "EffectUpdatePacket";
+
+		public EffectInfo effect;
 	}
 
 	/**
@@ -46,6 +74,8 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 			int maxCharges;
 
 			@Nullable String mode;
+			@Nullable Integer remainingDuration;
+			@Nullable Integer initialDuration;
 
 		}
 
@@ -65,6 +95,8 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 		int remainingCharges;
 
 		@Nullable String mode;
+		@Nullable Integer remainingDuration;
+		@Nullable Integer initialDuration;
 
 	}
 
@@ -76,6 +108,20 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 		final String _type = "PlayerStatusPacket";
 
 		int silenceDuration;
+
+	}
+
+	/**
+	 * Sent whenever the number of chests in a strike changes
+	 */
+	public static class StrikeChestUpdatePacket {
+
+		final String _type = "StrikeChestUpdatePacket";
+
+		public int newLimit;
+
+		@Nullable
+		public Integer count;
 
 	}
 
@@ -100,6 +146,18 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 				case "PlayerStatusPacket" -> {
 					PlayerStatusPacket packet = gson.fromJson(json, PlayerStatusPacket.class);
 					abilityHandler.updateStatus(packet);
+				}
+				case "StrikeChestUpdatePacket" -> {
+					StrikeChestUpdatePacket packet = gson.fromJson(json, StrikeChestUpdatePacket.class);
+					chestCountOverlay.onStrikeChestUpdatePacket(packet);
+				}
+				case "MassEffectUpdatePacket" -> {
+					MassEffectUpdatePacket packet = gson.fromJson(json, MassEffectUpdatePacket.class);
+					UnofficialMonumentaModClient.effectOverlay.onMassEffectUpdatePacket(packet);
+				}
+				case "EffectUpdatePacket" -> {
+					EffectUpdatePacket packet = gson.fromJson(json, EffectUpdatePacket.class);
+					UnofficialMonumentaModClient.effectOverlay.onEffectUpdatePacket(packet);
 				}
 			}
 		});

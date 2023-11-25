@@ -13,7 +13,7 @@ import net.minecraft.client.render.entity.model.ModelWithHead;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedModelManager;
 import net.minecraft.client.render.model.BuiltinBakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
+import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EquipmentSlot;
@@ -23,7 +23,7 @@ import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.Vec3f;
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -78,12 +78,12 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 		}
 		this.getContextModel().getHead().rotate(matrices);
 		matrices.translate(0.0D, -0.25D, 0.0D);
-		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F));
+		matrices.multiply(new Quaternionf(0, 180, 0, 0));
 		matrices.scale(0.625F, -0.625F, -0.625F);
 		if (!UnofficialMonumentaModClient.options.lowerVillagerHelmets && (livingEntity instanceof VillagerEntity || livingEntity instanceof ZombieVillagerEntity)) {
 			matrices.translate(0.0D, 0.1875D, 0.0D);
 		}
-		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformation.Mode.HEAD,
+		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformationMode.HEAD,
 			false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
 		matrices.pop();
 	}

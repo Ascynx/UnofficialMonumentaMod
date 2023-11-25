@@ -9,6 +9,7 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.random.Random;
 import org.jetbrains.annotations.Nullable;
 
 public class AbilityHandler {
@@ -18,6 +19,8 @@ public class AbilityHandler {
 
 	public static final int MAX_ANIMATION_TICKS = 20;
 
+	private static final Random random = Random.create();
+
 	public static class AbilityInfo {
 		public String name;
 		public String className;
@@ -26,6 +29,8 @@ public class AbilityHandler {
 		public int offCooldownAnimationTicks;
 		public int charges;
 		public int maxCharges;
+		public int initialDuration;
+		public int remainingDuration;
 		public @Nullable String mode;
 
 		public AbilityInfo(ChannelHandler.ClassUpdatePacket.AbilityInfo info) {
@@ -35,6 +40,8 @@ public class AbilityHandler {
 			this.remainingCooldown = info.remainingCooldown;
 			this.charges = info.remainingCharges;
 			this.maxCharges = info.maxCharges;
+			this.initialDuration = info.initialDuration == null ? 0 : info.initialDuration;
+			this.remainingDuration = info.remainingDuration == null ? 0 : info.remainingDuration;
 			this.mode = info.mode;
 			offCooldownAnimationTicks = MAX_ANIMATION_TICKS;
 		}
@@ -42,6 +49,16 @@ public class AbilityHandler {
 		public String getOrderId() {
 			return (className + "/" + name).toLowerCase(Locale.ROOT);
 		}
+
+		public void tick() {
+			if (remainingCooldown > 1) {
+				remainingCooldown--;
+			}
+			if (remainingDuration > 1) {
+				remainingDuration--;
+			}
+		}
+
 	}
 
 	// accesses must be synchronized on the AbilityHandler
@@ -90,6 +107,8 @@ public class AbilityHandler {
 				}
 				abilityInfo.charges = packet.remainingCharges;
 				abilityInfo.mode = packet.mode;
+				abilityInfo.initialDuration = packet.initialDuration == null ? 0 : packet.initialDuration;
+				abilityInfo.remainingDuration = packet.remainingDuration == null ? 0 : packet.remainingDuration;
 				return;
 			}
 		}
@@ -111,16 +130,15 @@ public class AbilityHandler {
 		List<AbilityInfo> data = this.abilityData;
 		for (int i = 0; i < data.size(); i++) {
 			AbilityInfo abilityInfo = data.get(i);
-			if (abilityInfo.remainingCooldown > 1) {
-				abilityInfo.remainingCooldown--;
-			}
+			abilityInfo.tick();
 			if (abilityInfo.offCooldownAnimationTicks == 0 && UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundVolume > 0) {
 				float pitchMin = UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundPitchMin;
 				float pitchMax = UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundPitchMax;
 				MinecraftClient.getInstance().getSoundManager().play(
-					new PositionedSoundInstance(UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundUseAlt ? COOLDOWN_SOUND_ALT : COOLDOWN_SOUND, SoundCategory.MASTER, UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundVolume,
+					new PositionedSoundInstance(UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundUseAlt ? COOLDOWN_SOUND_ALT : COOLDOWN_SOUND,
+						SoundCategory.MASTER, UnofficialMonumentaModClient.options.abilitiesDisplay_offCooldownSoundVolume,
 						pitchMin + (i == 0 ? 0 : (pitchMax - pitchMin) * i / (data.size() - 1)),
-						false, 0, SoundInstance.AttenuationType.NONE, 0, 0, 0, true));
+						random, false, 0, SoundInstance.AttenuationType.NONE, 0, 0, 0, true), 0);
 			}
 			if (abilityInfo.offCooldownAnimationTicks < MAX_ANIMATION_TICKS) {
 				abilityInfo.offCooldownAnimationTicks++;
@@ -131,5 +149,8 @@ public class AbilityHandler {
 		}
 	}
 
-
+	public enum DurationRenderMode {
+		CIRCLE(),
+		BAR()
+	}
 }

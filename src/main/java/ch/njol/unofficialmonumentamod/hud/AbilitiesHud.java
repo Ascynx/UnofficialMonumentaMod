@@ -26,6 +26,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.RotationAxis;
 
 public class AbilitiesHud extends HudElement {
 
@@ -54,7 +55,8 @@ public class AbilitiesHud extends HudElement {
 		UNKNOWN_ABILITY_ICON = atlas.registerSprite("unknown_ability");
 		UNKNOWN_CLASS_BORDER = atlas.registerSprite("unknown_border");
 		List<Identifier> foundIcons = MinecraftClient.getInstance().getResourceManager().findResources("textures/abilities", path -> true)
-			                              .stream().filter(id -> id.getNamespace().equals(UnofficialMonumentaModClient.MOD_IDENTIFIER)).toList();
+			                              .keySet().stream()
+			                              .filter(id -> id.getNamespace().equals(UnofficialMonumentaModClient.MOD_IDENTIFIER)).toList();
 		for (Identifier foundIcon : foundIcons) {
 			if (foundIcon == COOLDOWN_OVERLAY || foundIcon == COOLDOWN_FLASH || foundIcon == UNKNOWN_ABILITY_ICON || foundIcon == UNKNOWN_CLASS_BORDER) {
 				continue;
@@ -149,7 +151,7 @@ public class AbilitiesHud extends HudElement {
 
 				if (isAbilityVisible(abilityInfo, false)) {
 					// some settings are affected by called methods, so set them anew for each ability to render
-					RenderSystem.setShader(GameRenderer::getPositionTexShader);
+					RenderSystem.setShader(GameRenderer::getPositionTexProgram);
 					RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 					RenderSystem.enableBlend();
 					RenderSystem.defaultBlendFunc();
@@ -162,13 +164,33 @@ public class AbilitiesHud extends HudElement {
 						float scaledX = x - (scaledIconSize - iconSize) / 2;
 						float scaledY = y - (scaledIconSize - iconSize) / 2;
 
+						float durationFraction = abilityInfo.initialDuration > 0 && abilityInfo.remainingDuration > 0 ? (abilityInfo.remainingDuration - tickDelta) / abilityInfo.initialDuration : 0;
+						if (durationFraction > 0 && options.abilitiesDisplay_durationRenderMode == AbilityHandler.DurationRenderMode.CIRCLE) {
+							Utils.drawPartialHollowPolygon(
+								matrices,
+								(int) scaledX + (iconSize / 2),
+								(int) scaledY + (iconSize / 2),
+								4,
+								((float) iconSize / 2),
+								360,
+								durationFraction > 0.10 ? 0x00FF00FF : 0xFF0000FF,//If above 10% then green else red
+								durationFraction
+							);
+							//as RenderSystem settings are changed during the circle drawing, need to re-set them.
+							RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+							RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+							RenderSystem.enableBlend();
+							RenderSystem.defaultBlendFunc();
+						}
+
 						drawSprite(matrices, getAbilityIcon(abilityInfo), scaledX, scaledY, scaledIconSize, scaledIconSize);
+
 
 						// silenceCooldownFraction is >= 0 so this is also >= 0
 						float cooldownFraction = abilityInfo.initialCooldown <= 0 ? 0 : Math.min(Math.max((abilityInfo.remainingCooldown - tickDelta) / abilityInfo.initialCooldown, silenceCooldownFraction), 1);
 						if (cooldownFraction > 0) {
 							Sprite cooldownOverlay = atlas.getSprite(COOLDOWN_OVERLAY);
-							float yOffset = (cooldownOverlay.getWidth() - cooldownOverlay.getHeight()) / 2f;
+							float yOffset = (cooldownOverlay.getContents().getWidth() - cooldownOverlay.getContents().getHeight()) / 2f;
 							drawPartialSprite(matrices, cooldownOverlay, scaledX, scaledY + yOffset, scaledIconSize, scaledIconSize - 2 * yOffset, 0, 1 - cooldownFraction, 1, 1);
 						}
 						if (options.abilitiesDisplay_offCooldownFlashIntensity > 0 && animTicks < 8) {
@@ -179,6 +201,10 @@ public class AbilitiesHud extends HudElement {
 
 						drawSprite(matrices, getSpriteOrDefault(getBorderFileIdentifier(abilityInfo.className, abilityHandler.silenceDuration > 0), UNKNOWN_CLASS_BORDER), scaledX, scaledY, scaledIconSize, scaledIconSize);
 
+						//bar looks better on top of the border, that's why we're checking again here
+						if (durationFraction > 0 && options.abilitiesDisplay_durationRenderMode == AbilityHandler.DurationRenderMode.BAR) {
+							drawDurationBar(matrices, scaledX, scaledY, durationFraction, abilityInfo.className);
+						}
 					} else {
 
 						if ((abilityInfo.remainingCooldown > 0 || abilityHandler.silenceDuration > 0) && options.abilitiesDisplay_showCooldownAsText) {
@@ -206,6 +232,37 @@ public class AbilitiesHud extends HudElement {
 		}
 	}
 
+	private void drawDurationBar(MatrixStack matrices, float originX, float originY, float fraction, String className) {
+
+		Options options = UnofficialMonumentaModClient.options;
+		int iconSize = options.abilitiesDisplay_iconSize;
+		float barHeight = 8 * iconSize / 32f;
+
+		matrices.push();
+
+		boolean horizontal = options.abilitiesDisplay_durationBar_side == Options.DurationBarSideMode.FOLLOW ? options.abilitiesDisplay_horizontal
+			                     : options.abilitiesDisplay_durationBar_side == Options.DurationBarSideMode.HORIZONTAL;
+		matrices.translate(originX + iconSize / 2f, originY + iconSize / 2f, 0);
+		if (!horizontal) {
+			matrices.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(90));
+		}
+		matrices.translate(iconSize / 32f * options.abilitiesDisplay_durationBar_offsetX, iconSize / 32f * options.abilitiesDisplay_durationBar_offsetY - barHeight / 2f, 0);
+
+		Sprite backgroundSprite = getClassDuration(className, "background");
+		Sprite barSprite = getClassDuration(className, "full");
+		Sprite overlaySprite = getClassDuration(className, "overlay");
+
+		float backgroundWidth = iconSize;
+		float barWidth = 1f * barSprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * backgroundWidth;
+		float overlayWidth = 1f * overlaySprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * backgroundWidth;
+
+		drawSprite(matrices, backgroundSprite, -backgroundWidth / 2, 0, backgroundWidth, barHeight);
+		drawPartialSprite(matrices, barSprite, -barWidth / 2, 0, barWidth, barHeight, 0, 0, fraction, 1);
+		drawSprite(matrices, overlaySprite, -overlayWidth / 2, 0, overlayWidth, barHeight);
+
+		matrices.pop();
+	}
+
 	private static final Pattern IDENTIFIER_SANITATION_PATTERN = Pattern.compile("[^a-zA-Z0-9/._-]");
 
 	private static String sanitizeForIdentifier(String string) {
@@ -214,6 +271,18 @@ public class AbilitiesHud extends HudElement {
 
 	private static final Map<String, Identifier> abilityIdentifiers = new HashMap<>();
 
+	private Sprite getClassDuration(String className, String part) {
+		String id = className + "/" + className + "_bar_" + part;
+		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Sprite sprite = atlas.getSprite(baseIdentifier);
+		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
+			return sprite;
+		}
+
+		Identifier e = abilityIdentifiers.computeIfAbsent("shaman/shaman_bar_" + part, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		return atlas.getSprite(e);
+	}
+
 	private Sprite getAbilityIcon(AbilityHandler.AbilityInfo abilityInfo) {
 		String id = (abilityInfo.className == null ? "unknown" : abilityInfo.className) + "/" + abilityInfo.name + (abilityInfo.mode == null ? "" : "_" + abilityInfo.mode);
 
@@ -221,14 +290,14 @@ public class AbilitiesHud extends HudElement {
 		if ((abilityInfo.maxCharges > 1 || abilityInfo.maxCharges == 1 && abilityInfo.initialCooldown <= 0) && abilityInfo.charges == abilityInfo.maxCharges) {
 			Identifier maxIdentifier = abilityIdentifiers.computeIfAbsent(id + "_max", key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 			Sprite sprite = atlas.getSprite(maxIdentifier);
-			if (!(sprite instanceof MissingSprite)) {
+			if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 				return sprite;
 			}
 		}
 
 		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 		Sprite sprite = atlas.getSprite(baseIdentifier);
-		if (!(sprite instanceof MissingSprite)) {
+		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return sprite;
 		}
 		return atlas.getSprite(UNKNOWN_ABILITY_ICON);
@@ -244,7 +313,7 @@ public class AbilitiesHud extends HudElement {
 
 	private Sprite getSpriteOrDefault(Identifier identifier, Identifier defaultIdentifier) {
 		Sprite sprite = atlas.getSprite(identifier);
-		if (sprite instanceof MissingSprite) {
+		if (sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return atlas.getSprite(defaultIdentifier);
 		}
 		return sprite;

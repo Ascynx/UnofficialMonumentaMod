@@ -11,7 +11,7 @@ import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedModelManager;
-import net.minecraft.client.render.model.json.ModelTransformation;
+import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.EquipmentSlot;
@@ -19,10 +19,10 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.ZombieVillagerEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Wearable;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -75,26 +75,24 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 		}
 		this.getContextModel().getHead().rotate(matrices);
 		matrices.translate(0.0D, -0.25D, 0.0D);
-		matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F));
+		matrices.multiply(new Quaternionf(0, 180, 0, 0));
 		matrices.scale(0.625F, -0.625F, -0.625F);
 		if (!UnofficialMonumentaModClient.options.lowerVillagerHelmets && (livingEntity instanceof VillagerEntity || livingEntity instanceof ZombieVillagerEntity)) {
 			matrices.translate(0.0D, 0.1875D, 0.0D);
 		}
-		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformation.Mode.HEAD,
+		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformationMode.HEAD,
 			false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
 		matrices.pop();
 	}
 
 	@ModifyVariable(method = "renderArmor", at = @At(value = "STORE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
 	private ItemStack editStack(ItemStack value) {
-		//TODO fix logic, for some reason override isn't working anymore :scared:
-		
 		//override logic, if override is false and the item is wearable it will remove the original stack else it will carry on.
 		if (UnofficialMonumentaModClient.options.enableTextureSpoofing &&
 			    UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(TextureSpoofer.getKeyOf(value)) &&
-			    !(Registry.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof ArmorItem)) {
+			    !(Registries.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof ArmorItem)) {
 			if (UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).override &&
-					((Registry.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof Wearable) ||
+					((Registries.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof Equipment) ||
 				    (contextSlot == EquipmentSlot.HEAD))) {
 				return ItemStack.EMPTY;
 			}
