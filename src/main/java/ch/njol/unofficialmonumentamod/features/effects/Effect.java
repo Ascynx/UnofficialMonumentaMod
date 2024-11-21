@@ -90,6 +90,7 @@ public class Effect {
 		Effect effect = new Effect(name, effectPower, effectTime, isPercentage);
 
 		effect.positiveEffect = positiveEffect;
+		effect.displayPriority = displayPriority;
 		return effect;
 	}
 
