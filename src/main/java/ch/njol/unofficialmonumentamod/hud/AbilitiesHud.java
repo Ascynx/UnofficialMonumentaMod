@@ -118,7 +118,7 @@ public class AbilitiesHud extends HudElement {
 			return;
 		}
 
-		abilityInfos = abilityInfos.stream().filter(a -> isAbilityVisible(a, true)).collect(Collectors.toList());
+		abilityInfos = abilityInfos.stream().filter(a -> isAbilityVisible(a, true)).toList();
 
 		int iconSize = options.abilitiesDisplay_iconSize;
 		int iconGap = options.abilitiesDisplay_iconGap;
@@ -255,13 +255,12 @@ public class AbilitiesHud extends HudElement {
 		Sprite barSprite = getClassDuration(className, "full");
 		Sprite overlaySprite = getClassDuration(className, "overlay");
 
-		float backgroundWidth = iconSize;
-		float barWidth = 1f * barSprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * backgroundWidth;
-		float overlayWidth = 1f * overlaySprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * backgroundWidth;
+        float barWidth = 1f * barSprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * (float) iconSize;
+		float overlayWidth = 1f * overlaySprite.getContents().getWidth() / backgroundSprite.getContents().getWidth() * (float) iconSize;
 
-		drawSprite(drawContext, backgroundSprite, -backgroundWidth / 2, 0, backgroundWidth, barHeight);
+		drawContext.drawSprite(-iconSize / 2, 0, 0, iconSize, (int) barHeight, backgroundSprite);
 		drawPartialSprite(drawContext, barSprite, -barWidth / 2, 0, barWidth, barHeight, 0, 0, fraction, 1);
-		drawSprite(drawContext, overlaySprite, -overlayWidth / 2, 0, overlayWidth, barHeight);
+		drawContext.drawSprite((int) -overlayWidth / 2, 0, 0, (int) overlayWidth, (int) barHeight, overlaySprite);
 
 		matrices.pop();
 	}
