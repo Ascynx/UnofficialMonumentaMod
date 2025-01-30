@@ -43,8 +43,8 @@
     "minecraft": "~${minecraft_version}"
   },
   "recommends": {
-    "modmenu": ">=7.2.1",
-    "cloth-config": ">=11.1.106"
+    "modmenu": ">=9.2.0",
+    "cloth-config": ">=13.0.138"
   },
   "suggests": {
     "citresewn": "*"

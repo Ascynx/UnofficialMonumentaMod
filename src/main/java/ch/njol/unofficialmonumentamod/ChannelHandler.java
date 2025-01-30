@@ -135,7 +135,7 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 
 		/**
 		 * tells the clientside mod whether it is allowed to release information on the location of the player.
-		 * example: beta testing of new content. Should be enabled on stage and volt.
+		 * example: beta testing of new content. Should be disabled on stage and volt.
 		 */
 		public boolean allowPublicizeContent;
 	}
