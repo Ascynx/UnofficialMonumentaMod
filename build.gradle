@@ -29,6 +29,10 @@ dependencies {
         transitive = false
     }
 
+    modApi("me.shedaniel.cloth:cloth-config-fabric:13.0.138") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
     //modified under the com.github.Ascynx group to follow a modified working mirror for this dependency.
     include(implementation('com.github.Ascynx:discord-rpc-release:v3.4.0'))
     include(implementation("com.github.Ascynx:java-discord-rpc:v2.0.2"))
@@ -44,7 +48,7 @@ dependencies {
 
     // Optional Mod Integrations
     modApi ("com.github.Provismet:ProviHealth:1.2.4-mc1.20.2") {
-        transitive = false
+        exclude (group: "com.terraformersmc")
     } //(no 1.20.4 specific version, mentioned as compatible)
 }
 
