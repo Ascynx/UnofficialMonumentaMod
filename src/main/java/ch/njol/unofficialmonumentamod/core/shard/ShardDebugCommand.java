@@ -113,7 +113,7 @@ public class ShardDebugCommand extends Constants {
             text.append(Text.literal((isEdited ? "Yes" : "No")+  "\n" ).setStyle(VALUE_STYLE));
 
             text.append(Text.literal("Is World Spoofing Enabled: ").setStyle(KEY_INFO_STYLE));
-            text.append(Text.literal((isWorldSpoofOptionEnabled ? "Yes" : "No") + "\n" + (receivesLocationsPackets ? "(Ignored)" : "")).setStyle(VALUE_STYLE));
+            text.append(Text.literal((isWorldSpoofOptionEnabled ? "Yes" : "No") + (receivesLocationsPackets ? "(Ignored)" : "") + "\n").setStyle(VALUE_STYLE));
 
             text.append(Text.literal("Does the client receive location update packets: ").setStyle(KEY_INFO_STYLE));
             text.append(Text.literal((receivesLocationsPackets ? "Yes" : "No") + "\n").setStyle(VALUE_STYLE));
