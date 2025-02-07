@@ -28,7 +28,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -82,6 +81,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 	public static final AbilityHandler abilityHandler = new AbilityHandler();
 
 	public static KeyBinding toggleCalculatorKeyBinding = new KeyBinding("unofficial-monumenta-mod.keybinds.toggleCalculator", GLFW.GLFW_KEY_K, "unofficial-monumenta-mod.keybinds.category");
+	public static KeyBinding nbtDevOverlayKeyBinding = new KeyBinding("unofficial-monumenta-mod.keybinds.toggleNBTOverlay", GLFW.GLFW_KEY_N, "unofficial-monumenta-mod.keybinds.category");
 
 	@Override
 	public void onInitializeClient() {
@@ -153,6 +153,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ChannelHandler.CHANNEL_ID, new ChannelHandler());
 
 		KeyBindingHelper.registerKeyBinding(toggleCalculatorKeyBinding);
+		KeyBindingHelper.registerKeyBinding(nbtDevOverlayKeyBinding);
 		KeyBindingHelper.registerKeyBinding(SlotLocking.LOCK_KEY);
 
 		Hud.INSTANCE.addElement(AbilitiesHud.INSTANCE);
@@ -241,7 +242,6 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		ClientPlayNetworkHandler clientPlayNetworkHandler = mc.getNetworkHandler();
 		if (clientPlayNetworkHandler != null && clientPlayNetworkHandler.getBrand() != null) {
 			String serverBrand = clientPlayNetworkHandler.getBrand();
-			System.out.println(serverBrand);
 			onMM = !mc.isInSingleplayer() && serverBrand.startsWith("Monumenta");
 		}
 		return onMM;

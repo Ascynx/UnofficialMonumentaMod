@@ -1,20 +1,18 @@
 package ch.njol.unofficialmonumentamod.mixins.screen;
 
+import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.features.calculator.Calculator;
 import ch.njol.unofficialmonumentamod.features.calculator.CalculatorWidget;
-import java.util.List;
 
 import ch.njol.unofficialmonumentamod.features.misc.SlotLocking;
+import ch.njol.unofficialmonumentamod.features.misc.dev.ItemDataOverlay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.AbstractParentElement;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.ParentElement;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -24,18 +22,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Screen.class)
-public abstract class ScreenMixin extends AbstractParentElement {
+public abstract class ScreenMixin extends AbstractParentElement implements ParentElement {
 	@Shadow protected abstract <T extends Element & Drawable & Selectable> T addDrawableChild(T drawableElement);
+
+	@Shadow protected abstract void remove(Element child);
 
 	@Unique
 	void initializeWidget() {
+		Screen $this = (Screen) (Object) this;
 		//initialize calculator widget if it should be added.
 		if (Calculator.INSTANCE.shouldRender()) {
-			CalculatorWidget calculator = new CalculatorWidget((Screen) (Object) this);
+			CalculatorWidget calculator = new CalculatorWidget($this);
 			calculator.init(CalculatorWidget.getMode());
 			Calculator.lastWidgetInitialized = calculator;
-			addDrawableChild(calculator);
+			Utils.addWidget($this, calculator);
 		}
+
+		//re-initialize nbt dev overlay
+		ItemDataOverlay.onGUIResized($this);
 	}
 
 	@Inject(at = @At("HEAD"), method = "close")
@@ -45,6 +49,7 @@ public abstract class ScreenMixin extends AbstractParentElement {
 			Calculator.lastWidgetInitialized.onParentClosed();
 			Calculator.lastWidgetInitialized = null;
 		}
+		ItemDataOverlay.onGUIClosed();
 	}
 
 	@Inject(at = @At("HEAD"), method = "keyPressed", cancellable = true)
@@ -52,6 +57,9 @@ public abstract class ScreenMixin extends AbstractParentElement {
 		Screen $this = (Screen) (Object) this;
 
 		if (Calculator.INSTANCE.keyTyped(keyCode, scanCode, modifiers)) {
+			cir.setReturnValue(true);
+		}
+		if (ItemDataOverlay.keyTyped(keyCode, scanCode, modifiers)) {
 			cir.setReturnValue(true);
 		}
 

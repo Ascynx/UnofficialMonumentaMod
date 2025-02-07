@@ -14,9 +14,15 @@ public interface HandledScreenAccessor {
 	@Accessor("x")
 	int getX();
 
+	@Accessor("focusedSlot")
+	Slot getFocusedSlot();
+
 	@Accessor("backgroundWidth")
 	int getBackGroundWidth();
 	
 	@Invoker("getSlotAt")
 	Slot doGetSlotAt(double x, double y);
+
+	@Invoker("isPointOverSlot")
+	boolean isMouseOverSlot(Slot slot, double mouseX, double mouseY);
 }

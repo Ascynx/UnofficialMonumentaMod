@@ -10,6 +10,7 @@ import ch.njol.minecraft.uiframework.ElementPosition;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.AbilityOptionPreset;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.features.misc.dev.ItemDataOverlay.ItemDataOverlayMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,6 +91,10 @@ public class Options implements ch.njol.minecraft.config.Options {
 	@Category("misc")
 	@FloatSlider(min = 0.2F, max = 10F, step = 0.2F, unit = "s")
 	public float lock_textCooldown = 1F;
+
+	@Dropdown("idoverlay")
+	@Category("misc")
+	public ItemDataOverlayMode itemdataoverlay_mode = ItemDataOverlayMode.NBT;
 
 	@Category("abilities")
 	public transient DescriptionLine abilitiesDisplay_info;

@@ -25,6 +25,7 @@
     "ThrowablePotionItemMixin",
     "item.ItemStackAccessor",
     "item.ItemStackMixin",
+    "screen.CreativeInventoryScreenMixin",
     "screen.HandledScreenAccessor",
     "screen.HandledScreenMixin",
     "screen.ScreenAccessor",

@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.features.calculator;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import ch.njol.unofficialmonumentamod.features.locations.Locations;
 import ch.njol.unofficialmonumentamod.mixins.screen.ScreenAccessor;
@@ -49,11 +50,11 @@ public class Calculator {
 
 				CalculatorWidget widget = new CalculatorWidget(MinecraftClient.getInstance().currentScreen);
 				widget.init(CalculatorWidget.getMode());
-				((ScreenAccessor) MinecraftClient.getInstance().currentScreen).doAddDrawableChild(widget);
+				Utils.addWidget(MinecraftClient.getInstance().currentScreen, widget);
 				lastWidgetInitialized = widget;
 			} else {
 				//close
-				((ScreenAccessor) MinecraftClient.getInstance().currentScreen).doRemove(lastWidgetInitialized);
+				Utils.removeWidget(MinecraftClient.getInstance().currentScreen, lastWidgetInitialized);
 				lastWidgetInitialized = null;
 			}
 			return true;

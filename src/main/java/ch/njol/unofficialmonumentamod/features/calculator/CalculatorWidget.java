@@ -1,37 +1,22 @@
 package ch.njol.unofficialmonumentamod.features.calculator;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.core.gui.InventoryWidget;
 import ch.njol.unofficialmonumentamod.mixins.screen.HandledScreenAccessor;
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.AbstractParentElement;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
 
-public class CalculatorWidget extends AbstractParentElement implements Drawable, Selectable, Element {
+public class CalculatorWidget extends InventoryWidget {
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
     private static CalculatorState state = CalculatorState.CLOSED;
     private static CalculatorMode mode = CalculatorMode.NORMAL;
-    private boolean focused;
-
-    private final List<Element> childrens = new ArrayList<>();
-    private final List<Drawable> drawables = new ArrayList<>();
-    private final List<Selectable> selectables = new ArrayList<>();
-    private Element focusedElement;
-    private Selectable selected;
-
-    private final Screen parent;
-
     protected static void switchMode() {
         mode = CalculatorMode.values()[(mode.ordinal() + 1) % CalculatorMode.values().length];
         if (Calculator.lastWidgetInitialized != null) {
@@ -77,15 +62,8 @@ public class CalculatorWidget extends AbstractParentElement implements Drawable,
         wanted = -1;
     }
 
-    private void clear() {
-        childrens.clear();
-        drawables.clear();
-        selectables.clear();
-    }
-
     public void init(CalculatorMode mode) {
         clear();
-
         Rectangle dimension = getDimension();
 
         switch(mode) {
@@ -213,89 +191,25 @@ public class CalculatorWidget extends AbstractParentElement implements Drawable,
     }
 
     public CalculatorWidget(Screen parent) {
-        this.parent = parent;
+        super(parent);
     }
 
     public Rectangle getDimension() {
-        int x = ((HandledScreenAccessor) parent).getX() + ((HandledScreenAccessor) parent).getBackGroundWidth();
-        int y = ((HandledScreenAccessor) parent).getY();
+        int x = ((HandledScreenAccessor) parentScreen).getX() + ((HandledScreenAccessor) parentScreen).getBackGroundWidth();
+        int y = ((HandledScreenAccessor) parentScreen).getY();
         final int width = state == CalculatorState.OPEN ? 140 : 20;
         final int height = state == CalculatorState.OPEN ? 160 : 40;
 
         return new Rectangle(x, y, width, height);
     }
 
-    @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        Rectangle dimension = getDimension();
-
-        renderBackground(drawContext);
-        for (Drawable dr : getDrawables()) {
-            dr.render(drawContext, mouseX, mouseY, delta);
-        }
-        drawContext.drawTextWithShadow(client.textRenderer, getOutput(mode), dimension.x + 10, dimension.y + 105, 0xffcccccc);
-    }
-
-    private void renderBackground(DrawContext drawContext) {
-        Rectangle dimension = getDimension();
-
+    @Override public void renderBackground(DrawContext ctx, Rectangle dimension) {
         final int bgColour = client.options.getTextBackgroundColor(0.3f);
-
-        drawContext.fill(dimension.x, dimension.y, (int) dimension.getMaxX(), (int) dimension.getMaxY(), bgColour);
+        ctx.fill(dimension.x, dimension.y, (int) dimension.getMaxX(), (int) dimension.getMaxY(), bgColour);
     }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        for (Element element : this.children()) {
-            if (!element.mouseClicked(mouseX, mouseY, button)) {
-                continue;
-            }
-            this.setFocused(element);
-            if (button == 0) {
-                this.setDragging(true);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public List<? extends Element> children() {
-        return childrens;
-    }
-    public List<? extends Drawable> getDrawables() {
-        return drawables;
-    }
-
-    protected  <T extends Drawable & Selectable & Element> T addDrawableChild(T child) {
-        this.drawables.add(child);
-        return addSelectableChild(child);
-    }
-
-    protected Drawable addDrawable(Drawable drawable) {
-        this.drawables.add(drawable);
-        return drawable;
-    }
-
-    protected <T extends Element & Selectable> T addSelectableChild(T child) {
-        this.selectables.add(child);
-        this.childrens.add(child);
-        return child;
-    }
-
-    @Override
-    public void setFocused(boolean focused) {
-        this.focused = focused;
-    }
-
-    @Override
-    public boolean isFocused() {
-        return focused;
-    }
-
-    @Override
-    public SelectionType getType() {
-        return SelectionType.FOCUSED;
+    @Override public void render(DrawContext ctx, Rectangle dimension, int mouseX, int mouseY, float delta) {
+        ctx.drawTextWithShadow(client.textRenderer, getOutput(mode), dimension.x + 10, dimension.y + 105, 0xffcccccc);
     }
 
     @Override
