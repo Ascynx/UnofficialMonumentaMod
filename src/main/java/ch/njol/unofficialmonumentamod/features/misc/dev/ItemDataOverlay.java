@@ -3,42 +3,44 @@ package ch.njol.unofficialmonumentamod.features.misc.dev;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.core.gui.InventoryWidget;
+import ch.njol.unofficialmonumentamod.features.misc.managers.MessageNotifier;
 import ch.njol.unofficialmonumentamod.mixins.screen.HandledScreenAccessor;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.tooltip.TooltipComponent;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.PlainTextContent;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import org.lwjgl.glfw.GLFW;
 
 public class ItemDataOverlay extends InventoryWidget {
     private static final MinecraftClient client = MinecraftClient.getInstance();
     private static ItemDataOverlay lastInitializedWidget = null;
 
     private final ItemStack itemStack;
-    private List<String> cachedLines = null;
+    private final List<Text> cachedLines;
 
     private double pos = 0;
 
     public ItemDataOverlay(Screen parent, ItemStack stack) {
         super(parent);
         itemStack = stack.copy();
-        if (UnofficialMonumentaModClient.options.itemdataoverlay_mode == ItemDataOverlayMode.NBT) {
-            if (itemStack.hasNbt() && itemStack.getNbt() != null) {
-                cachedLines = splitNbt(itemStack.getNbt());
-            }
-        }
-
-        if (cachedLines == null) {
-            cachedLines = new ArrayList<>();
-        }
+        cachedLines = UnofficialMonumentaModClient.options.itemdataoverlay_mode.invoke(stack);
     }
 
     private final int TITLE_HEIGHT = 20;
@@ -71,20 +73,83 @@ public class ItemDataOverlay extends InventoryWidget {
                 //add 1 to relativeIndex to keep a short margin, stops it from going overboard.
                 break;
             }
-            String line = cachedLines.get(i);
+            Text line = cachedLines.get(i);
             if (client.textRenderer.getWidth(line) >= dimension.getWidth()) {
                 //limit size to avoid going over the container limit + remove trailing as " ..." doesn't look as good.
-                line = client.textRenderer
-                        .trimToWidth(line, (int) dimension.getWidth() - (client.textRenderer.getWidth("...") * 2))
-                        .stripTrailing();
-                line += "...";
+                line = trimToWidth(line, (int) dimension.getWidth() - (client.textRenderer.getWidth("...") * 2));
             }
 
-            ctx.drawTextWithShadow(client.textRenderer, line, dimension.x + 10, yPos, 0xffffff);
+            TooltipComponent component = TooltipComponent.of(line.asOrderedText());
+            component.drawText(client.textRenderer, dimension.x + 10, yPos, ctx.getMatrices().peek().getPositionMatrix(), ctx.getVertexConsumers());
             yPos += (client.textRenderer.fontHeight + 1);
         }
 
         renderScrollbar(ctx, mouseX, mouseY, dimension, (int) pos, (int) renderableLines(), cachedLines.size());
+    }
+
+    /**
+     * careful, shits recursive.
+     * @param text the text we're currently checking
+     * @param siblings the current known siblings of the root text
+     * @param currDepth current depth
+     * @param maxDepth the maximum depth we're allowed to go
+     * @return the new list of siblings of the root text.
+     */
+    private List<Text> getTextSiblings(Text text, List<Text> siblings, int currDepth, int maxDepth) {
+        if (currDepth >= maxDepth || text.getSiblings().isEmpty()) {
+            siblings.add(text);
+            return siblings;
+        }
+
+        for (Text sibling: text.getSiblings()) {
+            getTextSiblings(sibling, siblings, currDepth + 1, maxDepth);
+        }
+        return siblings;
+    }
+
+    private Text trimToWidth(Text text, int width) {
+        if (width <= 0) {
+            return Text.empty();
+        }
+
+        int currentWidth = text.getLiteralString() != null ? text.getLiteralString().length() : 0;
+        if (currentWidth > width) {
+            Text trimmed = (Text) client.textRenderer.trimToWidth(text, width);
+            trimmed.visit((str) -> {
+                str = str.stripTrailing();
+                str += "...";
+                return Optional.of(str);
+            });
+            return trimmed;
+        }
+
+
+        List<Text> oldSiblings = getTextSiblings(text, new ArrayList<>(), 0, 5);
+        List<Text> newSiblings = new ArrayList<>();
+        for (int i = 0; i < oldSiblings.size(); i++) {
+            Text sibling = oldSiblings.get(i);
+            String siblingText = sibling.getContent().visit(Optional::of).orElse("");
+            int textWidth = client.textRenderer.getWidth(siblingText);
+            currentWidth += textWidth;
+            if (currentWidth > width) {
+                int widthDelta = currentWidth - width;
+                siblingText = client.textRenderer.trimToWidth(siblingText, textWidth - widthDelta);
+                if (i == oldSiblings.size() - 1) {
+                    siblingText = siblingText.stripTrailing();
+                    siblingText += "...";
+                }
+
+                newSiblings.add(MutableText.of(PlainTextContent.of(siblingText)).setStyle(sibling.getStyle()));
+                break;
+            }
+            newSiblings.add(sibling);
+        }
+
+        MutableText newText = MutableText.of(text.getContent()).setStyle(text.getStyle());
+        for (Text newSibling : newSiblings) {
+            newText.append(newSibling);
+        }
+        return newText;
     }
 
     private void renderTitle(DrawContext ctx, double mouseX, double mouseY, Rectangle dimension) {
@@ -195,8 +260,8 @@ public class ItemDataOverlay extends InventoryWidget {
         );
     }
 
-    private static List<String> splitNbt(NbtCompound tag) {
-        List<String> splits = new ArrayList<>();
+    private static List<Text> splitNbt(NbtCompound tag) {
+        List<Text> splits = new ArrayList<>();
 
         String dirtyNbt = tag.toString();
         StringBuilder builder = new StringBuilder();
@@ -221,7 +286,7 @@ public class ItemDataOverlay extends InventoryWidget {
             if (!skipNext) {
                 //put the character on the next line.
                 if ( c == ']' || c == '}') {
-                    splits.add(builder.toString().indent(depth).stripTrailing());
+                    splits.add(Text.of(builder.toString().indent(depth).stripTrailing()));
                     builder.setLength(0);
                     depth--;
                 }
@@ -234,14 +299,14 @@ public class ItemDataOverlay extends InventoryWidget {
                     if (c == '[' || c == '{') {
                         depth++;
                     }
-                    splits.add(builder.toString().indent(depth).stripTrailing());
+                    splits.add(Text.of(builder.toString().indent(depth).stripTrailing()));
                     builder.setLength(0);
                 }
             }
             skipNext = false;
         }
         if (!builder.isEmpty()) {
-            splits.add(builder.toString());
+            splits.add(Text.of(builder.toString()));
         }
 
         return splits;
@@ -259,14 +324,35 @@ public class ItemDataOverlay extends InventoryWidget {
         return focused.getStack();
     }
 
+    public void copyContentToClipboard() {
+        StringBuilder builder = new StringBuilder();
+        for (Text cachedLine : cachedLines) {
+            builder.append(cachedLine.getLiteralString()).append("\n");
+        }
+        client.keyboard.setClipboard(builder.toString());
+    }
+
     public static boolean keyTyped(int keyCode, int scanCode, int modifiers) {
         if (lastInitializedWidget != null && client.currentScreen != null) {
-            if (InputUtil.isKeyPressed(client.getWindow().getHandle(), InputUtil.GLFW_KEY_UP)) {
-                lastInitializedWidget.pos--;
-                lastInitializedWidget.clampPosition();
-            } else if (InputUtil.isKeyPressed(client.getWindow().getHandle(), InputUtil.GLFW_KEY_DOWN)) {
-                lastInitializedWidget.pos++;
-                lastInitializedWidget.clampPosition();
+            if (modifiers == 0) {
+                if (keyCode == InputUtil.GLFW_KEY_UP) {
+                    lastInitializedWidget.pos--;
+                    lastInitializedWidget.clampPosition();
+                } else if (keyCode == InputUtil.GLFW_KEY_DOWN) {
+                    lastInitializedWidget.pos++;
+                    lastInitializedWidget.clampPosition();
+                }
+            } else {
+                if (((modifiers & GLFW.GLFW_MOD_CONTROL) != 0)
+                        && ((modifiers & GLFW.GLFW_MOD_SHIFT) != 0)) {
+                    if (keyCode == InputUtil.GLFW_KEY_C) {
+                        lastInitializedWidget.copyContentToClipboard();
+                        MutableText text = Text.literal("Copied Item Data to clipboard");
+                        text.setStyle(Style.EMPTY.withColor(Formatting.AQUA));
+                        MessageNotifier.RenderedMessage renderedMessage = new MessageNotifier.RenderedMessage(text);
+                        MessageNotifier.getInstance().addOrStackMessageToQueue(renderedMessage);
+                    }
+                }
             }
         }
 
@@ -302,14 +388,40 @@ public class ItemDataOverlay extends InventoryWidget {
     }
 
     public static void onGUIResized(Screen screen) {
-        if (lastInitializedWidget != null) {
-            ItemDataOverlay overlay = new ItemDataOverlay(screen, lastInitializedWidget.itemStack);
-            Utils.addWidget(screen, overlay);
-            lastInitializedWidget = overlay;
+        if (screen instanceof HandledScreen<?> handled) {
+            if (lastInitializedWidget != null) {
+                ItemDataOverlay overlay = new ItemDataOverlay(handled, lastInitializedWidget.itemStack);
+                Utils.addWidget(handled, overlay);
+                lastInitializedWidget = overlay;
+            }
+            return;
         }
+        lastInitializedWidget = null;
     }
 
     public enum ItemDataOverlayMode {
-        NBT
+        NBT((stack) -> {
+            if (stack.hasNbt() && stack.getNbt() != null) {
+                return splitNbt(stack.getNbt());
+            }
+            return List.of();
+        }),
+        TOOLTIP((stack) -> {
+            List<Text> tooltip = stack.getTooltip(client.player, TooltipContext.ADVANCED);
+            //remove the first one as it is already set as the title.
+            tooltip.removeFirst();
+            return tooltip;
+        })
+
+        ;
+        final Function<ItemStack, List<Text>> _invoker;
+
+        ItemDataOverlayMode(Function<ItemStack, List<Text>> invoker) {
+            _invoker = invoker;
+        }
+
+        public List<Text> invoke(ItemStack itemStack) {
+            return _invoker.apply(itemStack);
+        }
     }
 }
