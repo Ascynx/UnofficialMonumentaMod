@@ -8,9 +8,6 @@
   "Attack Speed": {
     "method": "multiplicative"
   },
-  "Damage Dealt": {
-    "method": "multiplicative"
-  },
   "Resistance": {
     "method": "multiplicative"
   },
