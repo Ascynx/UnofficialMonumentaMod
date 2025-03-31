@@ -3,10 +3,10 @@ package ch.njol.unofficialmonumentamod.features.misc;
 import ch.njol.minecraft.uiframework.ModSpriteAtlasHolder;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
-import ch.njol.unofficialmonumentamod.mixins.KeyBindingAccessor;
 import ch.njol.unofficialmonumentamod.mixins.screen.HandledScreenAccessor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -17,7 +17,6 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -35,8 +34,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
-
-import static ch.njol.minecraft.uiframework.hud.HudElement.drawSprite;
 
 public class SlotLocking {
 	// This feature is largely based on https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/master/src/main/java/io/github/moulberry/notenoughupdates/miscfeatures/SlotLocking.java per the LGPL 3.0 license
@@ -286,7 +283,7 @@ public class SlotLocking {
 	}
 	
 	private static int getLockKeyCode() {
-		return ((KeyBindingAccessor) LOCK_KEY).getBoundKey().getCode();
+		return KeyBindingHelper.getBoundKeyOf(LOCK_KEY).getCode();
 	}
 
 	private static boolean isLockKeyPressed() {
@@ -294,7 +291,7 @@ public class SlotLocking {
 			return false;
 		}
 
-		if (Objects.equals(((KeyBindingAccessor) LOCK_KEY).getBoundKey().getCategory(), InputUtil.Type.MOUSE)) {
+		if (Objects.equals(KeyBindingHelper.getBoundKeyOf(LOCK_KEY).getCategory(), InputUtil.Type.MOUSE)) {
 			return GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), getLockKeyCode()) == 1;
 		} else {
 			return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), getLockKeyCode());

@@ -15,7 +15,6 @@
     "HeldItemFeatureRendererMixin",
     "InGameHudMixin",
     "ItemRendererMixin",
-    "KeyBindingAccessor",
     "MessageHandlerMixin",
     "MinecraftClientMixin",
     "PlayerListHudAccessor",
