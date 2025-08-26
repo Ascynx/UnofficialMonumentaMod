@@ -1,12 +1,12 @@
 package ch.njol.unofficialmonumentamod.features.misc;
 
 import ch.njol.minecraft.uiframework.ModSpriteAtlasHolder;
+import ch.njol.unofficialmonumentamod.KeybindingUtils;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.mixins.screen.HandledScreenAccessor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -16,7 +16,6 @@ import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -33,7 +32,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Objects;
 
 public class SlotLocking {
 	// This feature is largely based on https://github.com/NotEnoughUpdates/NotEnoughUpdates/blob/master/src/main/java/io/github/moulberry/notenoughupdates/miscfeatures/SlotLocking.java per the LGPL 3.0 license
@@ -281,21 +279,9 @@ public class SlotLocking {
 			activeSlot = null;
 		}
 	}
-	
-	private static int getLockKeyCode() {
-		return KeyBindingHelper.getBoundKeyOf(LOCK_KEY).getCode();
-	}
 
 	private static boolean isLockKeyPressed() {
-		if (LOCK_KEY.isUnbound()) {
-			return false;
-		}
-
-		if (Objects.equals(KeyBindingHelper.getBoundKeyOf(LOCK_KEY).getCategory(), InputUtil.Type.MOUSE)) {
-			return GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), getLockKeyCode()) == 1;
-		} else {
-			return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), getLockKeyCode());
-		}
+		return KeybindingUtils.isKeyPressed(LOCK_KEY);
 	}
 
 	public void onEndTick() {
@@ -365,6 +351,7 @@ public class SlotLocking {
 		switch (actionType) {
 			case PICKUP -> shouldBlock = shouldBlockPickupAction(slot, button, actionType);
 			case SWAP -> shouldBlock = shouldBlockSwapAction(slot, button, actionType);
+            case QUICK_MOVE -> shouldBlock = shouldBlockQuickMoveAction(slot, button, actionType);
 			case THROW -> {
 				if (!getLockedSlot(slot).lockDrop) break;
 				shouldBlock = true;
@@ -381,6 +368,19 @@ public class SlotLocking {
 
 		return shouldBlock;
 	}
+
+    private boolean shouldBlockQuickMoveAction(Slot slot, int button, SlotActionType actionType) {
+        if (actionType != SlotActionType.QUICK_MOVE || slot == null) {
+            return false;
+        }
+
+        LockedSlot locked = getLockedSlot(slot);
+        if (locked == null) {
+            return false;
+        }
+
+        return locked.lockPickup || locked.locked;
+    }
 
 	private boolean shouldBlockPickupAction(Slot slot, int button, SlotActionType actionType) {
 		if (actionType != SlotActionType.PICKUP || slot == null) {
