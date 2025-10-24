@@ -156,7 +156,9 @@ public class Effect {
 
 		Effect effect = new Effect(effectInfo.name, (float) effectInfo.power, tickDuration == -1 ? -1 : millisDuration, UUID.fromString(effectInfo.UUID));
 		effect.isPercentage = effectInfo.percentage;
-		effect.positiveEffect = effectInfo.positive;
+		effect.positiveEffect = !(effectInfo.positive == effectInfo.power < 0);
+
+
 		effect.displayPriority = effectInfo.displayPriority;
 
 		return effect;
@@ -175,7 +177,7 @@ public class Effect {
 		name = info.name;
 		effectTime = tickDuration != -1 ? millisDuration : -1;
 		isPercentage = info.percentage;
-		positiveEffect = info.positive;
+		positiveEffect = !(info.positive == info.power < 0);
 		displayPriority = info.displayPriority;
 
 		isNonStackableEffect = effectPower == 0;
