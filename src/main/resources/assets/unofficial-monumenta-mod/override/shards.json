@@ -187,7 +187,8 @@
   "indigo": {
     "officialName": "Phyrrys, City Of Fallen Stars",
     "shardType": "DUNGEON",
-    "maxChests": null
+    "maxChests": null,
+    "canBeDelveBounty": true
   },
   "green": {
     "officialName": "green",

@@ -4,6 +4,8 @@
   "unofficial-monumenta-mod.keybinds.toggleCalculator": "Toggle Calculator (plots shard only)",
   "unofficial-monumenta-mod.keybinds.toggleNBTOverlay": "Open Item Overlay",
   "unofficial-monumenta-mod.keybinds.lock_slot": "Lock/Unlock selected inventory slot",
+  "unofficial-monumenta-mod.keybinds.openDRPCGui": "Open Discord RPC Gui",
+  "unofficial-monumenta-mod.keybinds.debugSketchedControl": "Open Sketched Screen Debug Mode",
 
   "unofficial-monumenta-mod.config.title": "Unofficial Monumenta Mod Configuration",
 
@@ -219,6 +221,6 @@
   "unofficial-monumenta-mod.delvebounty.shiftingcity": "In attempt to keep away outsiders, the denizens of this city doomed themselves to their own shifting hell. They must be freed, one way or another.",
 
   "unofficial-monumenta-mod.delvebounty.blue": "A great upheaval is errupting within the Tree of Life. The great heads of this band of witches must be cut down, lest they unleash a powerful ritual, the consequences of which cannot be undone.",
-  "unofficial-monumenta-mod.delvebounty.brown": "Tales of the Ashkii speak of the Shades, husks of their kin that have been reduced to naught but mindless flesh, and doppelgangers that infiltrate their ranks. These threats must be stamped out by removing the god that lies in the heart of Pelias’ folly."
-
+  "unofficial-monumenta-mod.delvebounty.brown": "Tales of the Ashkii speak of the Shades, husks of their kin that have been reduced to naught but mindless flesh, and doppelgangers that infiltrate their ranks. These threats must be stamped out by removing the god that lies in the heart of Pelias’ folly.",
+  "unofficial-monumenta-mod.delvebounty.indigo": "A tower. inverted, calls out as friends and foes descend upon it. The wool within must be claimed before those with darker motives are able to lay claim to the secrets within."
 }
