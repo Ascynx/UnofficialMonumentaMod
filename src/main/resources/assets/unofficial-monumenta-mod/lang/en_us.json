@@ -4,8 +4,6 @@
   "unofficial-monumenta-mod.keybinds.toggleCalculator": "Toggle Calculator (plots shard only)",
   "unofficial-monumenta-mod.keybinds.toggleNBTOverlay": "Open Item Overlay",
   "unofficial-monumenta-mod.keybinds.lock_slot": "Lock/Unlock selected inventory slot",
-  "unofficial-monumenta-mod.keybinds.openDRPCGui": "Open Discord RPC Gui",
-  "unofficial-monumenta-mod.keybinds.debugSketchedControl": "Open Sketched Screen Debug Mode",
 
   "unofficial-monumenta-mod.config.title": "Unofficial Monumenta Mod Configuration",
 
