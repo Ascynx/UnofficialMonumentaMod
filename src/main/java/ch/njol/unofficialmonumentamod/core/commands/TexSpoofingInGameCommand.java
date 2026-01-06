@@ -185,7 +185,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editItem(finalItemName, replacementStack.getItem()))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed item replacement on \"" + finalItemName + "\" to \"" + replacementStack.getItem().getName() + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed item replacement on \"" + finalItemName + "\" to \"" + replacementStack.getItem().getName().getString() + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
