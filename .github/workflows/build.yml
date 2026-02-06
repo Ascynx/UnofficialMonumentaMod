@@ -42,7 +42,7 @@ jobs:
         run: chmod +x ./gradlew && ./gradlew :main:build --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: Artifact
+          name: UnofficialMonumentaMod
           path: main/build/libs/*.jar
 
   build-api:
@@ -70,5 +70,5 @@ jobs:
         run: chmod +x ./gradlew && ./gradlew :api:build --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: Artifact
+          name: MonumentaAPI
           path: api/build/libs/*.jar
