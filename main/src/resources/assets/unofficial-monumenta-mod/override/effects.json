@@ -1,0 +1,26 @@
+{
+  "Speed": {
+    "method": "multiplicative"
+  },
+  "Absorption": {
+    "method": "multiplicative"
+  },
+  "Attack Speed": {
+    "method": "multiplicative"
+  },
+  "Resistance": {
+    "method": "multiplicative"
+  },
+  "Experience Gain": {
+    "method": "multiplicative"
+  },
+  "Healing": {
+    "method": "multiplicative"
+  },
+  "Max Health": {
+    "method": "multiplicative"
+  },
+  "Knockback Resistance": {
+    "method": "multiplicative"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "unofficial-monumenta-mod",
+  "version": "${mod_version}",
+  "name": "Unofficial Monumenta Mod",
+  "description": "An unofficial client-side mod to complement the Monumenta MMO server.",
+  "authors": [
+    "Njol"
+  ],
+  "contributors": [
+    "Ascynx"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/unofficial-monumenta-mod",
+    "issues": "https://github.com/Njol/UnofficialMonumentaMod/issues",
+    "sources": "https://github.com/Njol/UnofficialMonumentaMod"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/unofficial-monumenta-mod/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient"
+    ],
+    "main": [
+    ],
+    "modmenu": [
+      "ch.njol.unofficialmonumentamod.options.ConfigMenu"
+    ],
+    "provihealth": [
+      "ch.njol.unofficialmonumentamod.compat.HealthBarHook"
+    ]
+  },
+  "custom" : {
+    "mod_extradata": "${mod_extradata}"
+  },
+  "mixins": [
+    "unofficial-monumenta-mod.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": ">=${fabric_version}",
+    "minecraft": "~${minecraft_version}"
+  },
+  "recommends": {
+    "modmenu": ">=9.2.0",
+    "cloth-config": ">=13.0.138"
+  },
+  "suggests": {
+    "citresewn": "*"
+  }
+}
