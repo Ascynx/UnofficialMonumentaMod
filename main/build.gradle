@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'fabric-loom' version '1.16-SNAPSHOT'
     id 'maven-publish'
     id "com.modrinth.minotaur" version "2.+"
     id "com.matthewprenger.cursegradle" version "1.+"
@@ -16,11 +16,14 @@ tasks.getByName('dependencies').dependsOn 'prepare'*/
 version = project.mod_version
 group = project.maven_group
 
-if (project.hasProperty("mod_extradata") && !project.mod_extradata.isEmpty()) {
-    archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version + "-" + project.mod_extradata;
-} else {
-    archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version
+base {
+    if (project.hasProperty("mod_extradata") && !project.mod_extradata.isEmpty()) {
+        archivesName = project.archives_base_name + "-mc" + project.minecraft_version + "-" + project.mod_extradata;
+    } else {
+        archivesName = project.archives_base_name + "-mc" + project.minecraft_version
+    }
 }
+
 
 dependencies {
     //to change the versions see the gradle.properties file
@@ -49,8 +52,10 @@ dependencies {
     //modApi "ch.njol.minecraft:config-framework-mc1_19:${project.config_framework_version}"
     //include "ch.njol.minecraft:config-framework-mc1_19:${project.config_framework_version}"
     //un-comment those if you want to load from jitpack (don't have both local and jitpack sources on at the same time, dunno what it'd do I never tried it)
-    modApi(include('com.github.ascynx:MCConfigFramework:mc1.20.4-SNAPSHOT'))
-    modApi(include('com.github.ascynx:MCUIFramework:mc1.20.4-SNAPSHOT'))
+    modApi(include('com.github.Ascynx:MCConfigFramework:mc1.20.4-SNAPSHOT'))
+    modApi(include('com.github.Ascynx:MCUIFramework:mc1.20.4-SNAPSHOT'))
+
+    include(modApi(project(path: ':api', configuration: 'shadow')))
 
     // Optional Mod Integrations
     modApi ("com.github.provismet:ProviHealth:1.2.4-mc1.20.2") {
