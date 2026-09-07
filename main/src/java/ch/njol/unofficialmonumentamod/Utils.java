@@ -19,6 +19,8 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import org.joml.Matrix4f;
@@ -26,6 +28,10 @@ import org.joml.Matrix4f;
 public abstract class Utils {
 
 	private Utils() {
+	}
+
+	public static boolean isEntityMainPlayer(LivingEntity entity) {
+		return (entity instanceof PlayerEntity) && ((PlayerEntity) entity).isMainPlayer();
 	}
 
 	/**

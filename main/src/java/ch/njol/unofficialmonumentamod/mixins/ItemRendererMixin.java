@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.Utils;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
@@ -9,6 +10,7 @@ import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.render.model.json.Transformation;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -44,7 +46,7 @@ public abstract class ItemRendererMixin {
 	@ModifyVariable(method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/world/World;III)V",
 		at = @At("HEAD"), ordinal = 0, argsOnly = true)
 	ModelTransformationMode renderItem_tridentFix_citResewnHack(ModelTransformationMode renderMode, @Nullable LivingEntity entity, ItemStack item, ModelTransformationMode renderMode2, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, @Nullable World world, int light, int overlay, int seed) {
-		Item spoofedItem = UnofficialMonumentaModClient.spoofer.getSpoofItem(item);
+		Item spoofedItem = Utils.isEntityMainPlayer(entity) ? UnofficialMonumentaModClient.spoofer.getSpoofItem(item) : null;
 
 		if (UnofficialMonumentaModClient.options.overrideTridentRendering
 			    && !item.isEmpty()
@@ -80,7 +82,10 @@ public abstract class ItemRendererMixin {
 	}
 
 	@ModifyVariable(method = "renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/render/model/json/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/world/World;III)V", at = @At("HEAD"), argsOnly = true)
-	private ItemStack umm$editStack$renderItemEntity(ItemStack value) {
+	private ItemStack umm$editStack$renderItemEntity(ItemStack value, @Nullable LivingEntity entity) {
+		if (!Utils.isEntityMainPlayer(entity)) {
+			return value;
+		}
 		ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(value);
 		return edited != null ? edited : value;
 	}

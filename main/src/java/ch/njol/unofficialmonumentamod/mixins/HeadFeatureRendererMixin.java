@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.Utils;
 import net.minecraft.block.AbstractSkullBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.OverlayTexture;
@@ -20,11 +21,13 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.ZombieVillagerEntity;
 import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -38,6 +41,9 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 		super(context);
 	}
 
+	@Unique
+	private static LivingEntity contextEntity;
+
 	/**
 	 * If a skull block has an "on_head" model, do not render it as usual and instead render that model
 	 */
@@ -45,8 +51,12 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 			at = @At("HEAD"), cancellable = true)
 	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
 		ItemStack itemStack = livingEntity.getEquippedStack(EquipmentSlot.HEAD);
-		ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(itemStack);
-		itemStack = edited != null ? edited : itemStack;
+		contextEntity = livingEntity;
+
+		if (Utils.isEntityMainPlayer(livingEntity)) {
+			ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(itemStack);
+			itemStack = edited != null ? edited : itemStack;
+		}
 
 		Item item = itemStack.getItem();
 		if (!(item instanceof BlockItem) || !(((BlockItem) item).getBlock() instanceof AbstractSkullBlock)) {
@@ -107,6 +117,10 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 
 	@ModifyVariable(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V", at = @At(value = "STORE", target = "Lnet/minecraft/item/ItemStack;isEmpty()Z"))
 	private ItemStack editStack(ItemStack value) {
+		if (!Utils.isEntityMainPlayer(contextEntity)) {
+			return value;
+		}
+
 		ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(value);
 		return edited != null ? edited : value;
 	}

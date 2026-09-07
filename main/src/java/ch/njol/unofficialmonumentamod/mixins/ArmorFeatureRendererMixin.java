@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.features.spoof.TextureSpoofer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.OverlayTexture;
@@ -18,6 +19,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.ZombieVillagerEntity;
 import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemStack;
@@ -39,6 +41,8 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 
 	@Unique
 	private static EquipmentSlot contextSlot;
+	@Unique
+	private static LivingEntity contextEntity;
 
 	/**
 	 * If a helmet has a model, do not render it as usual and instead render its model
@@ -48,6 +52,7 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 	public void renderArmor(MatrixStack matrices, VertexConsumerProvider vertexConsumers, T livingEntity, EquipmentSlot equipmentSlot,
 							int i, M bipedEntityModel, CallbackInfo ci) {
 		contextSlot = equipmentSlot;
+		contextEntity = livingEntity;
 		if (equipmentSlot != EquipmentSlot.HEAD) {
 			return;
 		}
@@ -87,6 +92,10 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 
 	@ModifyVariable(method = "renderArmor", at = @At(value = "STORE", target = "Lnet/minecraft/item/ItemStack;getItem()Lnet/minecraft/item/Item;"))
 	private ItemStack editStack(ItemStack value) {
+		if (!Utils.isEntityMainPlayer(contextEntity)) {
+			return value;
+		}
+
 		//override logic, if override is false and the item is wearable it will remove the original stack else it will carry on.
 		if (UnofficialMonumentaModClient.options.enableTextureSpoofing &&
 				UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(TextureSpoofer.getKeyOf(value)) &&
